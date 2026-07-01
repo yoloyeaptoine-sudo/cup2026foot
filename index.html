@@ -1,0 +1,2798 @@
+<!DOCTYPE html>
+<html lang="fr" id="htmlroot">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Tournoi de foot mondiale 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#FFD700;--gold2:#FFA500;
+  --dark:#152238;   /* Fond principal éclairci */
+  --dark2:#1e3250;  /* Dégradé éclairci */
+  --dark3:#2a456e;  /* Éléments sombres éclaircis */
+  --text:#ffffff;
+  --muted:#8fa8c7;  /* Textes secondaires plus lisibles */
+  --border:rgba(255,255,255,0.15); /* Bordures plus visibles */
+  --card:rgba(255,255,255,0.1);    /* Cartes de base plus claires */
+  --r:14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--dark);color:var(--text);font-family:'Barlow Condensed',sans-serif;}
+body::before{content:'';position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 110% 70% at 50% -5%,rgba(10,30,95,0.65) 0%,transparent 62%),
+  radial-gradient(ellipse 50% 38% at 90% 100%,rgba(120,60,0,0.1) 0%,transparent 55%),
+  linear-gradient(160deg,#04080f 0%,#07112a 55%,#04080f 100%);}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(rgba(255,255,255,0.012) 1px,transparent 1px);
+  background-size:35px 35px;}
+#app{position:relative;z-index:1;width:100%;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* ─── HEADER ─── */
+header{flex-shrink:0;display:grid;grid-template-columns:auto 1fr auto;align-items:stretch;padding:6px 12px 5px;gap:9px;}
+.clk{background:rgba(7,17,42,.94);border:1px solid rgba(255,215,0,.2);border-radius:13px;
+  padding:7px 16px;display:flex;flex-direction:column;justify-content:center;
+  min-width:200px;transition:border-color .4s,box-shadow .4s;}
+.clk.lit{border-color:rgba(255,215,0,.55);box-shadow:0 0 22px rgba(255,215,0,.13);}
+.clk-lbl{font-size:.72rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;
+  display:flex;align-items:center;gap:4px;line-height:1;margin-bottom:2px;}
+.clk-val{font-family:'Bebas Neue',sans-serif;font-size:2.3rem;letter-spacing:4px;color:var(--gold);line-height:1;}
+.clk-sub{font-size:.65rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+.clk-r .clk-lbl{justify-content:flex-end;}
+.clk-r .clk-val,.clk-r .clk-sub{text-align:right;}
+.hcenter{display:flex;align-items:center;justify-content:center;}
+.hbadge{background:rgba(7,17,42,.94);border:1px solid rgba(255,215,0,.2);border-radius:14px;
+  padding:6px 22px;display:flex;align-items:center;gap:16px;width:100%;}
+.trophy{font-size:1.8rem;filter:drop-shadow(0 0 9px rgba(255,215,0,.75));
+  animation:glow 3s ease-in-out infinite;flex-shrink:0;}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 6px rgba(255,215,0,.5))}50%{filter:drop-shadow(0 0 22px rgba(255,215,0,1))}}
+.htxt{flex:1;text-align:center;}
+.htxt h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.2rem,2.5vw,2rem);letter-spacing:5px;
+  background:linear-gradient(135deg,#fff 0%,var(--gold) 45%,var(--gold2) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+.htxt .sub{font-size:.63rem;letter-spacing:3px;color:var(--muted);margin-top:2px;}
+.htxt .hdate{display:inline-block;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.22);
+  border-radius:20px;padding:2px 10px;font-size:.62rem;color:var(--gold);letter-spacing:1px;margin-top:3px;}
+
+/* ─── NAV ─── */
+nav{flex-shrink:0;display:flex;justify-content:center;gap:4px;
+  padding:4px 12px 5px;border-bottom:1px solid var(--border);}
+.tab{padding:5px 14px;border-radius:20px;cursor:pointer;font-size:.82rem;font-weight:600;
+  letter-spacing:1px;text-transform:uppercase;transition:all .2s;
+  border:1px solid var(--border);background:var(--card);color:var(--muted);}
+.tab.active{background:var(--gold);color:#000;border-color:var(--gold);}
+.tab:hover:not(.active){background:rgba(255,255,255,.08);color:var(--text);}
+
+/* ─── MAIN ─── */
+main{flex:1;overflow:hidden;position:relative;}
+.view{display:none;width:100%;height:100%;position:absolute;top:0;left:0;}
+.view.active{display:block;}
+.scr{height:100%;overflow-y:auto;padding:14px 18px;scrollbar-width:thin;
+  scrollbar-color:rgba(255,215,0,.15) transparent;}
+.scr::-webkit-scrollbar{width:4px;}
+.scr::-webkit-scrollbar-thumb{background:rgba(255,215,0,.15);border-radius:2px;}
+
+/* ─────────────────────────────────────────
+   WHEEL VIEW — 3-column full height
+───────────────────────────────────────── */
+#vw{display:none;}
+#vw.active{display:grid;grid-template-columns:360px 1fr 360px;height:100%;gap:0;}
+
+/* Side panels */
+.sp{display:flex;flex-direction:column;overflow:hidden;background:rgba(5,11,26,.92);backdrop-filter:blur(8px);}
+.spl{border-right:1px solid var(--border);}
+.spr{border-left:1px solid var(--border);}
+.sp-hd{padding:9px 14px 8px;border-bottom:1px solid var(--border);flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;}
+.sp-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:3px;}
+.sp-cal-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:3px;color:var(--gold);}
+.sp-nav{display:flex;gap:4px;}
+.sp-arr{width:26px;height:26px;border-radius:7px;border:1px solid var(--border);
+  background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:.78rem;color:var(--muted);transition:all .15s;}
+.sp-arr:hover{background:rgba(255,255,255,.1);color:var(--text);}
+.sp-body{flex:1;overflow-y:auto;padding:10px 13px;scrollbar-width:thin;
+  scrollbar-color:rgba(255,215,0,.12) transparent;}
+.sp-body::-webkit-scrollbar{width:3px;}
+.sp-body::-webkit-scrollbar-thumb{background:rgba(255,215,0,.15);border-radius:2px;}
+
+/* Standings — large type */
+.stbl{width:100%;border-collapse:collapse;margin-bottom:10px;}
+.stbl th{font-size:.78rem;color:var(--muted);letter-spacing:1px;padding:4px 4px;
+  text-align:center;border-bottom:1px solid var(--border);}
+.stbl th:first-child{text-align:left;}
+.stbl td{padding:8px 4px;text-align:center;border-bottom:1px solid rgba(255,255,255,.022);font-size:.94rem;}
+.stbl td:first-child{text-align:left;}
+.tr-r{display:flex;align-items:center;gap:5px;}
+.tf{font-size:1.15rem;}.tn{font-weight:600;font-size:.92rem;}
+.qrow{background:rgba(0,200,100,.055);}
+.rk{width:19px;height:19px;border-radius:50%;display:inline-flex;align-items:center;
+  justify-content:center;font-size:.62rem;font-weight:700;background:rgba(255,255,255,.07);flex-shrink:0;}
+.rk.q1,.rk.q2{background:rgba(0,200,100,.28);color:#00c864;}
+.qnote{font-size:.74rem;color:var(--muted);margin-bottom:9px;}
+.msect{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2px;color:var(--gold);
+  margin-bottom:6px;margin-top:4px;}
+.mk{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;
+  padding:9px 11px;margin-bottom:6px;cursor:pointer;transition:all .15s;}
+.mk:hover{background:rgba(255,255,255,.05);border-color:rgba(255,215,0,.22);}
+.mk.sel{border-color:rgba(255,215,0,.52);background:rgba(255,215,0,.045);}
+.mm{font-size:.72rem;color:var(--muted);margin-bottom:2px;}
+.mv{font-size:.7rem;color:rgba(255,215,0,.52);margin-bottom:4px;}
+.mt{display:flex;align-items:center;justify-content:center;gap:4px;}
+.mteam{display:flex;flex-direction:column;align-items:center;gap:1px;flex:1;}
+.mteam.l{align-items:flex-start;}.mteam.r{align-items:flex-end;}
+.mtn{font-size:.85rem;font-weight:600;}.mtf{font-size:1.2rem;}
+.msc{display:flex;align-items:center;gap:4px;font-family:'Bebas Neue',sans-serif;
+  font-size:1.4rem;letter-spacing:2px;min-width:54px;justify-content:center;}
+.si{width:26px;height:30px;text-align:center;background:rgba(255,255,255,.07);
+  border:1px solid var(--border);border-radius:5px;color:var(--text);
+  font-family:'Bebas Neue',sans-serif;font-size:1.2rem;cursor:pointer;transition:all .15s;}
+.si:hover,.si:focus{background:rgba(255,215,0,.13);border-color:var(--gold);outline:none;}
+.sd{color:var(--muted);}
+
+/* Center wheel+globe */
+.cc{display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.wwrap{position:relative;}
+#wsvg{position:absolute;inset:0;width:100%;height:100%;cursor:pointer;overflow:visible;}
+#gcv{
+  position:absolute;
+  border-radius:50%;
+  cursor:grab;
+  touch-action:none;
+  z-index:5;
+  display:block;
+  background:transparent;
+  transition:box-shadow .35s;
+}
+#gcv:active{cursor:grabbing;}
+#gcv.zr{box-shadow:0 0 0 3px rgba(255,215,0,.6),0 0 32px rgba(255,215,0,.22);}
+#zi{position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  background:rgba(4,8,15,.92);border:1px solid rgba(255,215,0,.4);border-radius:10px;
+  padding:5px 14px;font-size:.72rem;color:var(--gold);letter-spacing:1px;
+  pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;z-index:20;}
+#zi.on{opacity:1;}
+.ghint{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  font-size:.58rem;color:var(--muted);letter-spacing:1px;white-space:nowrap;pointer-events:none;}
+
+/* Right cal */
+.pill-bar{display:flex;gap:4px;flex-wrap:wrap;padding:6px 11px 5px;
+  border-bottom:1px solid var(--border);flex-shrink:0;}
+.pill{padding:3px 9px;border-radius:12px;cursor:pointer;font-size:.74rem;font-weight:600;
+  letter-spacing:1px;border:1px solid var(--border);background:var(--card);color:var(--muted);transition:all .15s;}
+.pill.on{background:rgba(255,215,0,.16);border-color:var(--gold);color:var(--gold);}
+.pill:hover:not(.on){background:rgba(255,255,255,.06);color:var(--text);}
+.dh{font-family:'Bebas Neue',sans-serif;font-size:.85rem;letter-spacing:2px;color:var(--muted);
+  padding:6px 0 3px;display:flex;align-items:center;gap:5px;}
+.dh::after{content:'';flex:1;height:1px;background:var(--border);}
+.cmc{background:rgba(255,255,255,.022);border:1px solid var(--border);border-radius:9px;
+  padding:7px 9px;margin-bottom:5px;cursor:pointer;transition:all .15s;}
+.cmc:hover{border-color:rgba(255,215,0,.25);background:rgba(255,255,255,.044);}
+.cmc.sel{border-color:rgba(255,215,0,.5);background:rgba(255,215,0,.045);}
+.cmc-t{font-size:.7rem;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:3px;}
+.cmc-r{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:3px;}
+.ct{display:flex;align-items:center;gap:3px;font-size:.82rem;font-weight:600;}
+.ct.r{flex-direction:row-reverse;}
+.cf{font-size:1.1rem;}
+.cscore{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--gold);text-align:center;min-width:38px;}
+.cscore.vs{font-size:.64rem;color:var(--muted);letter-spacing:1px;}
+.cmc-v{font-size:.62rem;color:rgba(255,215,0,.45);margin-top:2px;}
+/* ─── MATCHS DU JOUR ─── */
+.cmc.today-match {
+  background: rgba(255, 215, 0, 0.12);
+  border-left: 3px solid var(--gold);
+}
+.dh.today-header {
+  color: var(--gold);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
+/* ─────────────────────────────────────────
+   GROUPS VIEW
+───────────────────────────────────────── */
+.sh{text-align:center;margin-bottom:22px;}
+.sh h2{font-family:'Bebas Neue',sans-serif;font-size:2.5rem;letter-spacing:4px;
+  background:linear-gradient(135deg,#fff,var(--gold));-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;}
+.sh p{font-size:.92rem;color:var(--muted);letter-spacing:2px;margin-top:5px;}
+.gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+.gc{background:rgba(7,17,42,.9);border:1px solid var(--border);border-radius:16px;
+  overflow:hidden;transition:all .22s;cursor:pointer;}
+.gc:hover{transform:translateY(-3px);box-shadow:0 12px 44px rgba(0,0,0,.55);border-color:rgba(255,215,0,.3);}
+.gc-hd{padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);}
+.gc-lt{font-family:'Bebas Neue',sans-serif;font-size:2.5rem;letter-spacing:3px;line-height:1;}
+.gc-inf{flex:1;}
+.gc-inf-t{font-size:.78rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+.gc-bar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:7px;overflow:hidden;}
+.gc-bar-f{height:100%;border-radius:2px;transition:width .5s;}
+.gc-teams{padding:8px 12px 12px;}
+.gc-t{display:flex;align-items:center;gap:9px;padding:6px 7px;border-radius:9px;transition:background .12s;cursor:pointer;}
+.gc-t:hover{background:rgba(255,255,255,.07);}
+.gc-t.win{background:rgba(0,200,100,.06);}
+.gc-rk{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;
+  justify-content:center;font-size:.65rem;font-weight:700;background:rgba(255,255,255,.07);flex-shrink:0;}
+.gc-rk.q{background:rgba(0,200,100,.28);color:#00c864;}
+.gc-fl{font-size:1.5rem;}
+.gc-nm{font-size:.95rem;font-weight:600;flex:1;}
+.gc-st{display:flex;gap:8px;font-size:.72rem;color:var(--muted);}
+.gc-sv{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--text);display:block;}
+.gc-pts{font-weight:700;font-size:.9rem;background:rgba(255,255,255,.1);
+  border-radius:5px;padding:2px 6px;min-width:24px;text-align:center;}
+
+/* Team modal */
+.mbg{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.62);backdrop-filter:blur(7px);opacity:0;pointer-events:none;transition:opacity .25s;}
+.mbg.on{opacity:1;pointer-events:all;}
+.mbox{background:var(--dark2);border:1px solid var(--border);border-radius:18px;padding:22px;
+  max-width:490px;width:92%;max-height:84vh;overflow-y:auto;transform:scale(.95);
+  transition:transform .25s;scrollbar-width:thin;}
+.mbg.on .mbox{transform:scale(1);}
+.tmh{display:flex;align-items:center;gap:13px;margin-bottom:16px;}
+.tmfl{font-size:2.8rem;}.tmnm{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:3px;}
+.tmgr{font-size:.76rem;color:var(--muted);letter-spacing:2px;}
+.tmx{margin-left:auto;width:32px;height:32px;border-radius:50%;border:1px solid var(--border);
+  background:var(--card);cursor:pointer;font-size:.9rem;color:var(--muted);
+  display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.tmx:hover{background:rgba(255,255,255,.1);color:var(--text);}
+.tmsc{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2px;color:var(--gold);
+  margin-bottom:9px;border-bottom:1px solid var(--border);padding-bottom:5px;}
+.tmm{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:11px;
+  padding:12px 14px;margin-bottom:8px;}
+.tmm-m{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-bottom:4px;}
+.tmm-v{font-size:.7rem;color:rgba(255,215,0,.55);margin-bottom:6px;}
+.tmm-t{display:flex;align-items:center;gap:9px;justify-content:center;}
+.tmt{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.tmt.r{align-items:flex-end;}.tmt.l{align-items:flex-start;}
+.tmtf{font-size:1.3rem;}.tmtn{font-size:.86rem;font-weight:600;}
+.tmsc2{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--gold);min-width:58px;text-align:center;}
+
+/* ─────────────────────────────────────────
+   CALENDAR VIEW
+───────────────────────────────────────── */
+.cp-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.cp{padding:6px 16px;border-radius:20px;cursor:pointer;font-size:.9rem;font-weight:600;
+  letter-spacing:1px;border:1px solid var(--border);background:var(--card);color:var(--muted);transition:all .2s;}
+.cp.on{background:rgba(255,215,0,.18);border-color:var(--gold);color:var(--gold);}
+.cp:hover:not(.on){background:rgba(255,255,255,.07);color:var(--text);}
+.cal-day{margin-bottom:20px;}
+.cal-dh{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.cal-dd{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;letter-spacing:2px;}
+.cal-dl{flex:1;height:1px;background:var(--border);}
+.cal-dc{font-size:.75rem;color:var(--muted);letter-spacing:1px;}
+.cal-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(305px,1fr));gap:10px;}
+.cal-c{background:rgba(7,17,42,.9);border:1px solid var(--border);border-radius:14px;
+  padding:14px 16px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.cal-c:hover{border-color:rgba(255,215,0,.3);background:rgba(255,255,255,.04);transform:translateY(-1px);}
+.cal-c.sel{border-color:rgba(255,215,0,.54);background:rgba(255,215,0,.045);}
+.cal-stripe{position:absolute;top:0;left:0;right:0;height:2.5px;border-radius:14px 14px 0 0;}
+.cal-ct{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.cal-gb{font-family:'Bebas Neue',sans-serif;font-size:.88rem;letter-spacing:1px;padding:2px 9px;border-radius:10px;}
+.cal-ti{font-size:.74rem;color:var(--muted);}
+.cal-tr{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-bottom:8px;}
+.calt{display:flex;align-items:center;gap:6px;font-size:.95rem;font-weight:600;}
+.calt.r{flex-direction:row-reverse;}
+.caltf{font-size:1.3rem;}
+.cal-sc{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--gold);text-align:center;min-width:46px;}
+.cal-sc.vs{font-size:.7rem;color:var(--muted);letter-spacing:1px;}
+.cal-vn{font-size:.7rem;color:rgba(255,215,0,.5);display:flex;align-items:center;gap:4px;}
+
+/* ─────────────────────────────────────────
+   PHASES VIEW
+───────────────────────────────────────── */
+.ph-intro{max-width:820px;margin:0 auto 22px;background:rgba(255,215,0,.04);
+  border:1px solid rgba(255,215,0,.16);border-radius:14px;padding:14px 20px;
+  font-size:.98rem;line-height:1.75;text-align:center;color:var(--muted);}
+.ph-intro strong{color:var(--gold);}
+.ph-tl{display:flex;align-items:stretch;gap:0;max-width:1100px;margin:0 auto 24px;}
+.ph-blk{flex:1;text-align:center;padding:0 5px;}
+.ph-ico{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 10px;font-size:1.55rem;}
+.ph-nm{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2px;line-height:1.1;}
+.ph-dt{font-size:.72rem;color:var(--muted);line-height:1.55;margin-top:5px;white-space:pre-line;}
+.ph-arr{display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.18);
+  font-size:.9rem;flex-shrink:0;align-self:center;margin-top:-18px;padding:0 3px;}
+.ph-cards{max-width:1100px;margin:22px auto 0;}
+.ph-cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px;}
+.ph-card{background:rgba(7,17,42,.9);border:1px solid var(--border);border-radius:14px;
+  padding:16px;text-align:center;transition:all .2s;}
+.ph-card:hover{border-color:rgba(255,215,0,.22);transform:translateY(-2px);}
+.ph-card-ico{font-size:2.1rem;margin-bottom:8px;}
+.ph-card-t{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:2px;margin-bottom:5px;}
+.ph-card-d{font-size:.78rem;color:var(--muted);line-height:1.55;white-space:pre-line;}
+
+/* ─────────────────────────────────────────
+   KNOCKOUT — Horizontal tree
+───────────────────────────────────────── */
+.ko-scr{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px;}
+
+/* ─────────────────────────────────────────
+   STADIUMS VIEW
+───────────────────────────────────────── */
+.st-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px;max-width:1400px;margin:0 auto;}
+.st-c{background:rgba(7,17,42,.92);border:1px solid var(--border);border-radius:16px;
+  overflow:hidden;transition:all .22s;}
+.st-c:hover{transform:translateY(-3px);box-shadow:0 14px 46px rgba(0,0,0,.55);border-color:rgba(255,215,0,.28);}
+.st-img{width:100%;height:185px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,rgba(10,25,65,.95),rgba(15,45,100,.85));
+  position:relative;overflow:hidden;}
+.st-img-emo{font-size:4rem;filter:drop-shadow(0 4px 16px rgba(0,0,0,.8));}
+.st-img-name{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.8));
+  padding:20px 14px 10px;font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;}
+.st-img-loc{font-size:.7rem;color:rgba(255,255,255,.6);margin-top:1px;}
+.st-body{padding:12px 15px;}
+.st-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.st-stat{background:rgba(255,255,255,.04);border-radius:9px;padding:8px 10px;}
+.st-stat-l{font-size:.62rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;}
+.st-stat-v{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:1px;}
+.st-stat-v.gold{color:var(--gold);}
+.st-wx{background:rgba(255,255,255,.035);border-radius:9px;padding:9px 11px;
+  display:flex;align-items:center;gap:9px;margin-bottom:9px;}
+.st-wx-ico{font-size:1.6rem;}
+.st-wx-t{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--gold);}
+.st-wx-d{font-size:.68rem;color:var(--muted);}
+.st-air{font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:5px;margin-bottom:10px;}
+.st-ms{border-top:1px solid var(--border);padding-top:9px;margin-top:4px;}
+.st-ms-t{font-size:.66rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.st-mi{font-size:.74rem;background:rgba(255,255,255,.03);border-radius:6px;
+  padding:4px 8px;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center;}
+
+/* ─── LANGUAGE PICKER ─── */
+.lang-btn{position:fixed;bottom:14px;left:14px;z-index:150;
+  background:rgba(7,17,42,.94);border:1px solid rgba(255,215,0,.25);border-radius:12px;
+  padding:7px 11px;cursor:pointer;font-size:.84rem;color:var(--gold);letter-spacing:1px;
+  display:flex;align-items:center;gap:6px;transition:all .2s;backdrop-filter:blur(8px);}
+.lang-btn:hover{border-color:rgba(255,215,0,.5);}
+.lang-menu{position:fixed;bottom:54px;left:14px;z-index:151;
+  background:rgba(7,17,42,.97);border:1px solid rgba(255,215,0,.22);border-radius:14px;
+  padding:8px 0;display:none;min-width:165px;box-shadow:0 8px 34px rgba(0,0,0,.65);
+  backdrop-filter:blur(10px);}
+.lang-menu.open{display:block;}
+.lang-it{padding:7px 14px;cursor:pointer;font-size:.84rem;color:var(--text);
+  display:flex;align-items:center;gap:8px;transition:background .12s;}
+.lang-it:hover{background:rgba(255,215,0,.08);}
+.lang-it.active{color:var(--gold);}
+
+/* ─── TOAST ─── */
+.toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%) translateY(70px);
+  background:rgba(0,200,100,.9);color:#000;padding:7px 16px;border-radius:20px;
+  font-size:.8rem;font-weight:600;transition:transform .25s;z-index:400;letter-spacing:1px;}
+.toast.on{transform:translateX(-50%) translateY(0);}
+
+/* ── Sélecteur de langue dans la nav ── */
+nav{align-items:center;}  /* override : centrer verticalement */
+.lang-nav-wrap{
+  position:relative;
+  margin-left:auto;  /* pousse à droite */
+  flex-shrink:0;
+}
+.lang-nav-btn{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 11px;border-radius:20px;cursor:pointer;
+  border:1px solid rgba(255,215,0,.3);
+  background:rgba(255,215,0,.08);
+  color:var(--gold);font-size:1.1rem;
+  transition:all .2s;user-select:none;
+}
+.lang-nav-btn:hover{background:rgba(255,215,0,.16);border-color:rgba(255,215,0,.55);}
+.lang-nav-drop{
+  display:none;
+  position:absolute;top:calc(100% + 6px);right:0;
+  background:rgba(6,14,36,.98);
+  border:1px solid rgba(255,215,0,.22);
+  border-radius:14px;padding:6px 0;
+  min-width:155px;z-index:300;
+  box-shadow:0 8px 32px rgba(0,0,0,.7);
+  backdrop-filter:blur(10px);
+}
+.lang-nav-drop.open{display:block;}
+.lnd-item{
+  padding:7px 14px;cursor:pointer;
+  font-size:.84rem;color:var(--text);
+  display:flex;align-items:center;gap:8px;
+  transition:background .12s;
+}
+.lnd-item:hover{background:rgba(255,215,0,.09);}
+.lnd-item.active{color:var(--gold);}
+
+@media(max-width:900px){
+  #vw.active{grid-template-columns:1fr;}
+  .sp{display:none;}
+}
+@media(max-width:580px){
+  .gg,.cal-g,.ph-cg{grid-template-columns:1fr;}
+  .st-g{grid-template-columns:1fr;}
+}
+
+
+/* ─── MODIFICATIONS : Calendrier en direct et Groupes ─── */
+
+/* 1. Éclaircir le fond des cases et ajouter une bordure pour mieux ressortir */
+.cmc, .cal-tr {
+  background: rgba(255, 255, 255, 0.08) !important; /* Fond moins sombre */
+  border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Bordure plus visible */
+  border-radius: 10px;
+  padding: 10px !important;
+  margin-bottom: 12px !important;
+}
+
+/* Effet au survol pour rendre l'ensemble plus dynamique */
+.cmc:hover, .cal-tr:hover {
+  background: rgba(30, 80, 150, 0.2) !important; 
+  border-color: var(--gold) !important;
+}
+
+/* 2. Noms des pays : plus grand, plus espacé, blanc pur */
+.cmc-r .ct, .cmc-r .ct span, .calt {
+  font-size: 1.15rem !important; /* Taille de police agrandie */
+  letter-spacing: 1.5px !important; /* Espacement entre les lettres */
+  font-weight: 600;
+  color: #ffffff !important; /* Blanc pur pour un contraste maximal */
+}
+
+/* 3. En-tête du match (ex: GRP A et Heure) : plus espacé */
+.cmc-t {
+  font-size: 0.95rem !important;
+  letter-spacing: 2px !important;
+  margin-bottom: 8px !important;
+}
+
+/* 4. Texte "VS" ou les Scores au centre : couleurs vives et aérées */
+.cscore, .cscore.vs, .cal-sc, .cal-sc.vs {
+  font-size: 1.1rem !important;
+  letter-spacing: 2px !important;
+  color: var(--gold) !important; /* Le doré ressort mieux que le texte muté */
+  font-weight: 700;
+}
+
+/* ─── Matchs Knockout dans Calendrier ─── */
+.cmc.ko-match {
+  border-left: 3px solid var(--gold) !important;
+}
+.cmc.ko-match .cmc-t span:first-child {
+  font-size: .8rem;
+  letter-spacing: 2px;
+}
+.cmc-v a {
+  color: var(--gold);
+  text-decoration: none;
+  font-size: .8rem;
+}
+.cmc-v a:hover {
+  text-decoration: underline;
+}
+.cal-dh.today {
+  color: var(--gold);
+  font-weight: 700;
+  border-left: 3px solid var(--gold);
+  padding-left: 8px;
+}
+.cal-empty {
+  text-align: center;
+  padding: 24px 12px;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+/* ─── Feedback visuel clic match ─── */
+.cmc.sel,
+.cmc.ko-match.sel {
+  background: rgba(255, 215, 0, 0.15) !important;
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.25);
+}
+
+/* Animation du globe */
+@keyframes globeZoom {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Indicateur du stade sur le globe (optionnel) */
+.stadium-marker {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: radial-gradient(circle, var(--gold), transparent);
+  border-radius: 50%;
+  opacity: 0.8;
+  animation: globeZoom 0.6s ease-out;
+}
+
+
+/* Masquer les flèches des champs de score pour Chrome, Safari, Edge, Opera */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Masquer les flèches des champs de score pour Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* ─── BANDEAU COOKIES ─── */
+.cookie-banner {
+  position: fixed;
+  bottom: -100%;
+  left: 0;
+  right: 0;
+  background: rgba(10, 20, 45, 0.98);
+  border-top: 2px solid var(--gold);
+  color: var(--text);
+  padding: 15px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  z-index: 9999;
+  transition: bottom 0.4s ease-in-out;
+  box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+}
+.cookie-banner.show { bottom: 0; }
+.cookie-text { font-size: 0.85rem; line-height: 1.4; color: var(--muted); max-width: 800px; text-align: center; }
+.cookie-text strong { color: var(--text); }
+.cookie-buttons { display: flex; gap: 10px; }
+.btn-cookie {
+  background: transparent; border: 1px solid var(--gold); color: var(--gold);
+  padding: 8px 16px; border-radius: 6px; cursor: pointer; font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem; letter-spacing: 1px; transition: all 0.2s;
+}
+.btn-cookie.accept { background: var(--gold); color: var(--dark); }
+.btn-cookie:hover { transform: scale(1.05); }
+
+/* ─── MODALES LÉGALES ─── */
+.legal-modal { display: none; }
+.legal-modal.on { display: flex; }
+.legal-content {
+  background: var(--dark2); padding: 25px; border-radius: 12px;
+  max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;
+  border: 1px solid var(--border);
+}
+.legal-content h2 { color: var(--gold); margin-bottom: 15px; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; }
+.legal-content p { font-size: 0.85rem; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+.legal-footer-links { margin-top: 8px; display: flex; justify-content: center; gap: 15px; }
+.legal-footer-links a { color: var(--gold); text-decoration: none; font-size: 0.85rem; cursor: pointer; }
+.legal-footer-links a:hover { text-decoration: underline; }
+
+
+
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- HEADER -->
+<header>
+  <div class="clk" id="clk-l">
+    <div class="clk-lbl"><span>📍</span>&nbsp;<span id="cll-lbl">HEURE DU MATCH</span></div>
+    <div class="clk-val" id="cll-val">––:––</div>
+    <div class="clk-sub" id="cll-sub">Sélectionner un match</div>
+  </div>
+  <div class="hcenter">
+    <div class="hbadge">
+      <span class="trophy">🏆</span>
+      <div class="htxt">
+        <h1>TOURNOI WORLD CUP 2026</h1>
+        <div class="sub">États-Unis · Canada · Mexique</div>
+        <div class="hdate" id="hdate">11 JUIN — 19 JUILLET 2026 · 48 ÉQUIPES · 104 MATCHS</div>
+      </div>
+      <span class="trophy">🏆</span>
+    </div>
+  </div>
+  <div class="clk clk-r" id="clk-r">
+    <div class="clk-lbl" style="justify-content:flex-end"><span id="clr-lbl">VOTRE HEURE</span>&nbsp;<span>🌍</span></div>
+    <div class="clk-val" id="clr-val">00:00:00</div>
+    <div class="clk-sub" id="clr-sub"></div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="tab active" onclick="switchTab('vw')">🌐 Vue Globale</div>
+  <div class="tab"        onclick="switchTab('vg')">🗂 Groupes</div>
+  <div class="tab"        onclick="switchTab('vc')">📅 Calendrier</div>
+  <div class="tab"        onclick="switchTab('vb')">🏟 Phases</div>
+  <div class="tab"        onclick="switchTab('vk')">🌳 Tableau</div>
+  <div class="tab"        onclick="switchTab('vs')">🏟 Stades</div>
+  <!-- Sélecteur langue intégré dans la nav -->
+  <div class="lang-nav-wrap" id="lang-nav-wrap">
+    <div class="lang-nav-btn" id="lang-nav-btn"
+         onclick="document.getElementById('lang-nav-drop').classList.toggle('open')">
+      <span id="lang-ico">🇫🇷</span>
+      <span id="lang-lbl" style="font-size:.72rem;font-weight:600">FR</span>
+      <span style="font-size:.55rem;opacity:.55">▼</span>
+    </div>
+    <div class="lang-nav-drop" id="lang-nav-drop">
+      <div class="lnd-item active" onclick="setLang('fr')">🇫🇷 Français</div>
+      <div class="lnd-item" onclick="setLang('en')">🇬🇧 English</div>
+      <div class="lnd-item" onclick="setLang('es')">🇪🇸 Español</div>
+      <div class="lnd-item" onclick="setLang('de')">🇩🇪 Deutsch</div>
+      <div class="lnd-item" onclick="setLang('pt')">🇵🇹 Português</div>
+      <div class="lnd-item" onclick="setLang('ar')">🇸🇦 العربية</div>
+      <div class="lnd-item" onclick="setLang('zh')">🇨🇳 中文</div>
+      <div class="lnd-item" onclick="setLang('ja')">🇯🇵 日本語</div>
+      <div class="lnd-item" onclick="setLang('ru')">🇷🇺 Русский</div>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- WHEEL VIEW -->
+<div id="vw" class="view active">
+  <div class="sp spl">
+    <div class="sp-hd">
+      <div class="sp-title" id="lp-t" style="color:#e74c3c">GROUPE A</div>
+      <div class="sp-nav">
+        <div class="sp-arr" onclick="navGrp(-1)">◀</div>
+        <div class="sp-arr" onclick="navGrp(1)">▶</div>
+      </div>
+    </div>
+    <div class="sp-body" id="lp-b"></div>
+  </div>
+  <div class="cc" id="cc">
+    <div class="wwrap" id="ww">
+      <svg id="wsvg" xmlns="http://www.w3.org/2000/svg"></svg>
+      <canvas id="gcv"></canvas>
+      <div id="zi"></div>
+      <div class="ghint" id="ghint">↺ Globe 3D interactif · cliquer un point = ouvrir groupe</div>
+    </div>
+  </div>
+  <div class="sp spr">
+    <div class="sp-hd"><div class="sp-cal-title" id="cal-live-t">📅 CALENDRIER EN DIRECT</div></div>
+    <div class="pill-bar" id="rcal-pills"></div>
+    <div class="sp-body" id="rcal-b"></div>
+  </div>
+</div>
+
+<!-- GROUPS -->
+<div id="vg" class="view">
+  <div class="scr">
+    <div class="sh"><h2 id="grp-title">LES 12 GROUPES</h2><p id="grp-sub">CLIQUEZ SUR UN PAYS POUR VOIR SES MATCHS</p></div>
+    <div class="gg" id="gg"></div>
+  </div>
+</div>
+
+<!-- CALENDAR -->
+<div id="vc" class="view">
+  <div class="scr">
+    <div class="sh" style="margin-bottom:14px"><h2 id="cal-title">📅 CALENDRIER COMPLET</h2></div>
+    <div class="cp-bar" id="cp-bar"></div>
+    <div id="cal-b"></div>
+  </div>
+</div>
+
+<!-- PHASES -->
+<div id="vb" class="view">
+  <div class="scr">
+    <div class="sh" style="margin-bottom:14px"><h2 id="ph-title">🏟 FORMAT & PHASES</h2></div>
+    <div class="ph-intro" id="ph-intro">
+      <strong>Format inédit 2026</strong> : 48 équipes · <strong>12 groupes de 4</strong> ·
+      2 premiers + <strong>8 meilleurs 3ᵉ</strong> = <strong>32 équipes</strong> en phase éliminatoire ·
+      Finale au <strong>MetLife Stadium, New York, 19 juillet 2026</strong>.
+    </div>
+    <div id="ph-tl"></div>
+    <div class="ph-cards"><div class="ph-cg" id="ph-cg"></div></div>
+  </div>
+</div>
+
+<!-- KNOCKOUT -->
+<div id="vk" class="view">
+
+
+
+  <div class="scr">
+    <div class="sh" style="margin-bottom:10px">
+      <h2 id="ko-title">🌳 ARBRE DE COMPÉTITION</h2>
+      <p id="ko-sub" style="font-size:.85rem;color:var(--muted);letter-spacing:2px;margin-top:4px">MIS À JOUR AUTOMATIQUEMENT</p>
+    </div>
+    <div class="ko-scr" id="ko-w"></div>
+  </div>
+</div>
+
+<!-- STADIUMS -->
+<div id="vs" class="view">
+  <div class="scr">
+    <div class="sh" style="margin-bottom:18px">
+      <h2 id="st-title">🏟 LES STADES</h2>
+      <p id="st-sub" style="font-size:.85rem;color:var(--muted);letter-spacing:2px;margin-top:4px">16 STADES · 3 PAYS · MÉTÉO & INFOS PRATIQUES</p>
+    </div>
+    <div class="st-g" id="st-g"></div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- Team modal -->
+<div class="mbg" id="mbg" onclick="closeModal()">
+  <div class="mbox" id="mbox" onclick="event.stopPropagation()"></div>
+</div>
+
+<!-- Language -->
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ╔═══════════════════════════════════════════════════════╗
+// ║  I18N                                                  ║
+// ╚═══════════════════════════════════════════════════════╝
+const I18N={
+fr:{nav:['🌐 Vue Globale','🗂 Groupes','📅 Calendrier','🏟 Phases','🌳 Tableau','🏟 Stades'],hdate:'11 JUIN — 19 JUILLET 2026 · 48 ÉQUIPES · 104 MATCHS',clk_m:'HEURE DU MATCH',clk_sel:'Sélectionner un match',clk_l:'VOTRE HEURE',ghint:'↺ Globe 3D interactif · cliquer un point = ouvrir groupe',cal_live:'📅 CALENDRIER EN DIRECT',grp_title:'LES 12 GROUPES',grp_sub:'CLIQUEZ SUR UN PAYS POUR VOIR SES MATCHS',cal_title:'📅 CALENDRIER COMPLET',ph_title:'🏟 FORMAT & PHASES',ko_title:'🌳 ARBRE DE COMPÉTITION',ko_sub:'MIS À JOUR AUTOMATIQUEMENT',st_title:'🏟 LES STADES',st_sub:'16 STADES · 3 PAYS · MÉTÉO & INFOS PRATIQUES',vs:'VS',avail:'Disponible après les groupes',q_note:'🟢 2 premiers + 8 meilleurs 3ᵉ qualifiés',matches:'MATCHS',capacity:'Capacité',country:'Pays',city:'Ville',airport:'Aéroport',distance:'Distance',weather:'Météo Juin',hosted:'Matchs joués',played:'joués'},
+en:{nav:['🌐 Global View','🗂 Groups','📅 Schedule','🏟 Phases','🌳 Bracket','🏟 Stadiums'],hdate:'JUNE 11 — JULY 19, 2026 · 48 TEAMS · 104 MATCHES',clk_m:'MATCH TIME',clk_sel:'Select a match',clk_l:'YOUR TIME',ghint:'↺ 3D Globe · click a dot = open group',cal_live:'📅 LIVE SCHEDULE',grp_title:'THE 12 GROUPS',grp_sub:'CLICK A COUNTRY TO SEE ITS MATCHES',cal_title:'📅 FULL SCHEDULE',ph_title:'🏟 FORMAT & PHASES',ko_title:'🌳 BRACKET',ko_sub:'UPDATES AUTOMATICALLY',st_title:'🏟 STADIUMS',st_sub:'16 STADIUMS · 3 COUNTRIES · WEATHER & INFO',vs:'VS',avail:'Available after group stage',q_note:'🟢 Top 2 + 8 best 3rds advance',matches:'MATCHES',capacity:'Capacity',country:'Country',city:'City',airport:'Airport',distance:'Distance',weather:'June Weather',hosted:'Matches hosted',played:'played'},
+es:{nav:['🌐 Vista Global','🗂 Grupos','📅 Calendario','🏟 Fases','🌳 Tabla','🏟 Estadios'],hdate:'11 JUN — 19 JUL 2026 · 48 EQUIPOS · 104 PARTIDOS',clk_m:'HORA DEL PARTIDO',clk_sel:'Seleccionar partido',clk_l:'TU HORA',ghint:'↺ Globo 3D · clic en punto = abrir grupo',cal_live:'📅 CALENDARIO EN VIVO',grp_title:'LOS 12 GRUPOS',grp_sub:'CLIC EN UN PAÍS PARA VER SUS PARTIDOS',cal_title:'📅 CALENDARIO COMPLETO',ph_title:'🏟 FORMATO Y FASES',ko_title:'🌳 CUADRO',ko_sub:'SE ACTUALIZA AUTOMÁTICAMENTE',st_title:'🏟 ESTADIOS',st_sub:'16 ESTADIOS · 3 PAÍSES · CLIMA E INFO',vs:'VS',avail:'Disponible tras la fase de grupos',q_note:'🟢 Top 2 + 8 mejores 3os clasificados',matches:'PARTIDOS',capacity:'Capacidad',country:'País',city:'Ciudad',airport:'Aeropuerto',distance:'Distancia',weather:'Clima Junio',hosted:'Partidos albergados',played:'jugados'},
+de:{nav:['🌐 Globalansicht','🗂 Gruppen','📅 Spielplan','🏟 Phasen','🌳 Tableau','🏟 Stadien'],hdate:'11. JUNI — 19. JULI 2026 · 48 TEAMS · 104 SPIELE',clk_m:'SPIELZEIT',clk_sel:'Spiel auswählen',clk_l:'IHRE ZEIT',ghint:'↺ 3D-Globus · Klicken = Gruppe öffnen',cal_live:'📅 LIVE-SPIELPLAN',grp_title:'DIE 12 GRUPPEN',grp_sub:'KLICKEN SIE AUF EIN LAND',cal_title:'📅 SPIELPLAN',ph_title:'🏟 FORMAT & PHASEN',ko_title:'🌳 TURNIERPLAN',ko_sub:'WIRD AUTOMATISCH AKTUALISIERT',st_title:'🏟 STADIEN',st_sub:'16 STADIEN · 3 LÄNDER · WETTER & INFO',vs:'GG',avail:'Nach Gruppenphase verfügbar',q_note:'🟢 Top 2 + 8 beste Dritte qualifiziert',matches:'SPIELE',capacity:'Kapazität',country:'Land',city:'Stadt',airport:'Flughafen',distance:'Entfernung',weather:'Wetter Juni',hosted:'Ausgetragene Spiele',played:'gespielt'},
+pt:{nav:['🌐 Visão Global','🗂 Grupos','📅 Calendário','🏟 Fases','🌳 Quadro','🏟 Estádios'],hdate:'11 JUN — 19 JUL 2026 · 48 EQUIPAS · 104 JOGOS',clk_m:'HORA DO JOGO',clk_sel:'Selecionar jogo',clk_l:'SUA HORA',ghint:'↺ Globo 3D · clicar num ponto = abrir grupo',cal_live:'📅 CALENDÁRIO AO VIVO',grp_title:'OS 12 GRUPOS',grp_sub:'CLIQUE NUM PAÍS PARA VER OS SEUS JOGOS',cal_title:'📅 CALENDÁRIO COMPLETO',ph_title:'🏟 FORMATO E FASES',ko_title:'🌳 QUADRO',ko_sub:'ATUALIZADO AUTOMATICAMENTE',st_title:'🏟 ESTÁDIOS',st_sub:'16 ESTÁDIOS · 3 PAÍSES · CLIMA E INFO',vs:'VS',avail:'Disponível após a fase de grupos',q_note:'🟢 Top 2 + 8 melhores 3os qualificados',matches:'JOGOS',capacity:'Capacidade',country:'País',city:'Cidade',airport:'Aeroporto',distance:'Distância',weather:'Clima Junho',hosted:'Jogos realizados',played:'jogados'},
+ar:{nav:['🌐 عرض شامل','🗂 مجموعات','📅 جدول','🏟 أدوار','🌳 شجرة','🏟 ملاعب'],hdate:'١١ يونيو — ١٩ يوليو ٢٠٢٦ · ٤٨ فريق · ١٠٤ مباراة',clk_m:'وقت المباراة',clk_sel:'اختر مباراة',clk_l:'وقتك',ghint:'↺ الكرة الأرضية 3D · انقر نقطة = فتح المجموعة',cal_live:'📅 الجدول المباشر',grp_title:'المجموعات الـ١٢',grp_sub:'انقر على دولة لرؤية مبارياتها',cal_title:'📅 الجدول الكامل',ph_title:'🏟 الصيغة والأدوار',ko_title:'🌳 شجرة البطولة',ko_sub:'يتحدث تلقائياً',st_title:'🏟 الملاعب',st_sub:'١٦ ملعب · ٣ دول · الطقس والمعلومات',vs:'ض',avail:'متاح بعد دور المجموعات',q_note:'🟢 أفضل ٢ + أفضل ٨ من الثالثين',matches:'المباريات',capacity:'السعة',country:'الدولة',city:'المدينة',airport:'المطار',distance:'المسافة',weather:'طقس يونيو',hosted:'المباريات المستضافة',played:'مُلعبة'},
+zh:{nav:['🌐 总览','🗂 小组','📅 赛程','🏟 赛制','🌳 赛事树','🏟 场馆'],hdate:'2026年6月11日—7月19日 · 48队 · 104场',clk_m:'比赛时间',clk_sel:'选择比赛',clk_l:'您的时间',ghint:'↺ 3D地球 · 点击标记 = 打开小组',cal_live:'📅 实时赛程',grp_title:'12个小组',grp_sub:'点击国家查看其比赛',cal_title:'📅 完整赛程',ph_title:'🏟 赛制与阶段',ko_title:'🌳 赛事树',ko_sub:'自动更新',st_title:'🏟 场馆',st_sub:'16场馆 · 3国 · 天气与实用信息',vs:'VS',avail:'小组赛后可用',q_note:'🟢 前2名 + 8支最佳第三名晋级',matches:'比赛',capacity:'容量',country:'国家',city:'城市',airport:'机场',distance:'距离',weather:'六月天气',hosted:'主办比赛',played:'已赛'},
+ja:{nav:['🌐 グローバル','🗂 グループ','📅 日程','🏟 フェーズ','🌳 トーナメント','🏟 スタジアム'],hdate:'2026年6月11日—7月19日 · 48チーム · 104試合',clk_m:'試合時間',clk_sel:'試合を選択',clk_l:'現地時間',ghint:'↺ 3Dグローブ · 点をクリック = グループを開く',cal_live:'📅 ライブ日程',grp_title:'12のグループ',grp_sub:'国をクリックして試合を確認',cal_title:'📅 完全日程',ph_title:'🏟 フォーマット',ko_title:'🌳 トーナメント表',ko_sub:'自動更新',st_title:'🏟 スタジアム',st_sub:'16スタジアム · 3カ国 · 天気と情報',vs:'VS',avail:'グループステージ後に利用可能',q_note:'🟢 上位2チーム + 8最高3位が進出',matches:'試合',capacity:'収容人数',country:'国',city:'都市',airport:'空港',distance:'距離',weather:'6月天気',hosted:'主催試合',played:'消化'},
+ru:{nav:['🌐 Обзор','🗂 Группы','📅 Календарь','🏟 Фазы','🌳 Турнир','🏟 Стадионы'],hdate:'11 ИЮНЯ — 19 ИЮЛЯ 2026 · 48 КОМАНД · 104 МАТЧА',clk_m:'ВРЕМЯ МАТЧА',clk_sel:'Выберите матч',clk_l:'ВАШЕ ВРЕМЯ',ghint:'↺ 3D-Глобус · нажмите точку = открыть группу',cal_live:'📅 РАСПИСАНИЕ',grp_title:'12 ГРУПП',grp_sub:'НАЖМИТЕ НА СТРАНУ, ЧТОБЫ УВИДЕТЬ ЕЁ МАТЧИ',cal_title:'📅 ПОЛНОЕ РАСПИСАНИЕ',ph_title:'🏟 ФОРМАТ И ФАЗЫ',ko_title:'🌳 ТУРНИРНАЯ СЕТКА',ko_sub:'ОБНОВЛЯЕТСЯ АВТОМАТИЧЕСКИ',st_title:'🏟 СТАДИОНЫ',st_sub:'16 СТАДИОНОВ · 3 СТРАНЫ · ПОГОДА И ИНФОРМАЦИЯ',vs:'VS',avail:'Доступно после группового этапа',q_note:'🟢 Топ-2 + 8 лучших 3-х выходят',matches:'МАТЧИ',capacity:'Вместимость',country:'Страна',city:'Город',airport:'Аэропорт',distance:'Расстояние',weather:'Погода в июне',hosted:'Принятые матчи',played:'сыграно'},
+};
+let LANG='fr';
+const LF={fr:{f:'🇫🇷',l:'FR'},en:{f:'🇬🇧',l:'EN'},es:{f:'🇪🇸',l:'ES'},de:{f:'🇩🇪',l:'DE'},pt:{f:'🇵🇹',l:'PT'},ar:{f:'🇸🇦',l:'AR'},zh:{f:'🇨🇳',l:'ZH'},ja:{f:'🇯🇵',l:'JA'},ru:{f:'🇷🇺',l:'RU'}};
+function T(k){return(I18N[LANG]||I18N.fr)[k]||k;}
+function applyLang(){
+  document.getElementById('htmlroot').setAttribute('dir',LANG==='ar'?'rtl':'ltr');
+  document.getElementById('hdate').textContent=T('hdate');
+  document.getElementById('cll-lbl').textContent=T('clk_m');
+  document.getElementById('cll-sub').textContent=selMatch?'':T('clk_sel');
+  document.getElementById('clr-lbl').textContent=T('clk_l');
+  document.getElementById('ghint').textContent=T('ghint');
+  document.getElementById('cal-live-t').textContent=T('cal_live');
+  document.getElementById('grp-title').textContent=T('grp_title');
+  document.getElementById('grp-sub').textContent=T('grp_sub');
+  document.getElementById('cal-title').textContent=T('cal_title');
+  document.getElementById('ph-title').textContent=T('ph_title');
+  document.getElementById('ko-title').textContent=T('ko_title');
+  document.getElementById('ko-sub').textContent=T('ko_sub');
+  document.getElementById('st-title').textContent=T('st_title');
+  document.getElementById('st-sub').textContent=T('st_sub');
+  // Nav tabs
+  const tabs = document.querySelectorAll('.tab');
+T('nav').forEach((l, i) => {
+  if (tabs[i]) tabs[i].textContent = l;
+});
+  // Rebuild open views
+  const av=document.querySelector('.view.active');
+  if(av)rebuildView(av.id);
+}
+function setLang(l){
+  LANG=l;
+  // Mettre à jour le bouton nav
+  const ico=document.getElementById('lang-ico');
+  const lbl=document.getElementById('lang-lbl');
+  if(ico)ico.textContent=LF[l].f;
+  if(lbl)lbl.textContent=LF[l].l;
+  // Marquer l'item actif dans le dropdown nav
+  document.querySelectorAll('.lnd-item').forEach(el=>
+    el.classList.toggle('active',el.textContent.trim().startsWith(LF[l].f)));
+  // Fermer les menus
+  const nd=document.getElementById('lang-nav-drop');
+  if(nd)nd.classList.remove('open');
+  const om=document.getElementById('lang-menu');
+  if(om)om.classList.remove('open');
+  applyLang();
+}
+// Fermer le dropdown lang si clic à l'extérieur
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#lang-nav-wrap')&&!e.target.closest('#lang-btn')&&!e.target.closest('#lang-menu')){
+    const nd=document.getElementById('lang-nav-drop');
+    if(nd)nd.classList.remove('open');
+    const om=document.getElementById('lang-menu');
+    if(om)om.classList.remove('open');
+  }
+});
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  DATA                                                  ║
+// ╚═══════════════════════════════════════════════════════╝
+const GRP={
+  A:{c:'#e74c3c',t:[{n:'Mexique',f:'🇲🇽',la:23.6,lo:-102.5,tz:-6},{n:'Afrique du Sud',f:'🇿🇦',la:-30.6,lo:22.9,tz:2},{n:'Corée du Sud',f:'🇰🇷',la:35.9,lo:127.8,tz:9},{n:'Tchéquie',f:'🇨🇿',la:49.8,lo:15.5,tz:2}]},
+  B:{c:'#e67e22',t:[{n:'Canada',f:'🇨🇦',la:56.1,lo:-106.3,tz:-7},{n:'Qatar',f:'🇶🇦',la:25.4,lo:51.2,tz:3},{n:'Suisse',f:'🇨🇭',la:46.8,lo:8.2,tz:2},{n:'Bosnie',f:'🇧🇦',la:44.2,lo:17.9,tz:2}]},
+  C:{c:'#f39c12',t:[{n:'Brésil',f:'🇧🇷',la:-10.8,lo:-53.1,tz:-3},{n:'Maroc',f:'🇲🇦',la:32,lo:-5,tz:1},{n:'Haïti',f:'🇭🇹',la:18.9,lo:-72.3,tz:-5},{n:'Écosse',f:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',la:56.5,lo:-4.2,tz:1}]},
+  D:{c:'#2ecc71',t:[{n:'États-Unis',f:'🇺🇸',la:37.1,lo:-95.7,tz:-5},{n:'Paraguay',f:'🇵🇾',la:-23.4,lo:-58.4,tz:-4},{n:'Australie',f:'🇦🇺',la:-25.3,lo:133.8,tz:10},{n:'Turquie',f:'🇹🇷',la:38.9,lo:35.2,tz:3}]},
+  E:{c:'#1abc9c',t:[{n:'Allemagne',f:'🇩🇪',la:51.2,lo:10.5,tz:2},{n:'Curaçao',f:'🇨🇼',la:12.2,lo:-69,tz:-4},{n:"Côte d'Ivoire",f:'🇨🇮',la:7.5,lo:-5.5,tz:0},{n:'Équateur',f:'🇪🇨',la:-1.8,lo:-78.2,tz:-5}]},
+  F:{c:'#3498db',t:[{n:'Pays-Bas',f:'🇳🇱',la:52.1,lo:5.3,tz:2},{n:'Japon',f:'🇯🇵',la:36.2,lo:138.3,tz:9},{n:'Suède',f:'🇸🇪',la:60.1,lo:18.6,tz:2},{n:'Tunisie',f:'🇹🇳',la:33.9,lo:9.5,tz:1}]},
+  G:{c:'#2980b9',t:[{n:'Belgique',f:'🇧🇪',la:50.5,lo:4.5,tz:2},{n:'Égypte',f:'🇪🇬',la:26.8,lo:30.8,tz:2},{n:'Iran',f:'🇮🇷',la:32.4,lo:53.7,tz:3.5},{n:'Nouvelle-Zélande',f:'🇳🇿',la:-40.9,lo:174.9,tz:12}]},
+  H:{c:'#8e44ad',t:[{n:'Espagne',f:'🇪🇸',la:40.5,lo:-3.7,tz:2},{n:'Cap-Vert',f:'🇨🇻',la:16,lo:-24,tz:-1},{n:'Arabie Saoudite',f:'🇸🇦',la:23.9,lo:45.1,tz:3},{n:'Uruguay',f:'🇺🇾',la:-32.5,lo:-55.8,tz:-3}]},
+  I:{c:'#9b59b6',t:[{n:'France',f:'🇫🇷',la:46.2,lo:2.2,tz:2},{n:'Sénégal',f:'🇸🇳',la:14.5,lo:-14.5,tz:0},{n:'Irak',f:'🇮🇶',la:33.2,lo:43.7,tz:3},{n:'Norvège',f:'🇳🇴',la:60.5,lo:8.5,tz:2}]},
+  J:{c:'#c0392b',t:[{n:'Argentine',f:'🇦🇷',la:-38.4,lo:-63.6,tz:-3},{n:'Algérie',f:'🇩🇿',la:28,lo:2.6,tz:1},{n:'Autriche',f:'🇦🇹',la:47.5,lo:14.6,tz:2},{n:'Jordanie',f:'🇯🇴',la:30.6,lo:36.7,tz:3}]},
+  K:{c:'#16a085',t:[{n:'Portugal',f:'🇵🇹',la:39.4,lo:-8.2,tz:1},{n:'RD Congo',f:'🇨🇩',la:-4,lo:21.8,tz:1},{n:'Ouzbékistan',f:'🇺🇿',la:41.4,lo:64.6,tz:5},{n:'Colombie',f:'🇨🇴',la:4.6,lo:-74.3,tz:-5}]},
+  L:{c:'#27ae60',t:[{n:'Angleterre',f:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',la:52.4,lo:-1.7,tz:1},{n:'Croatie',f:'🇭🇷',la:45.1,lo:15.2,tz:2},{n:'Ghana',f:'🇬🇭',la:7.9,lo:-1,tz:0},{n:'Panama',f:'🇵🇦',la:8.4,lo:-80.1,tz:-5}]},
+};
+const VENUES={
+  'Stade Mexico':                  {city:'Mexico City',   country:'Mexique',     lat:19.30, lon:-99.15,  tz:-6, flag:'🇲🇽'},
+  'Stadium Guadalajara':           {city:'Zapopan',       country:'Mexique',     lat:20.68, lon:-103.46, tz:-6, flag:'🇲🇽'},
+  'Stadium Monterrey':             {city:'Guadalupe',     country:'Mexique',     lat:25.67, lon:-100.24, tz:-6, flag:'🇲🇽'},
+  'Stadium Los Angeles':           {city:'Inglewood',     country:'États-Unis',  lat:33.95, lon:-118.33, tz:-7, flag:'🇺🇸'},
+  'Stadium Seattle':               {city:'Seattle',       country:'États-Unis',  lat:47.59, lon:-122.33, tz:-7, flag:'🇺🇸'},
+  'Stadium San Francisco':         {city:'Santa Clara',    country:'États-Unis',  lat:37.40, lon:-121.97, tz:-7, flag:'🇺🇸'},
+  'Stadium BC Place':              {city:'Vancouver',      country:'Canada',      lat:49.28, lon:-123.11, tz:-7, flag:'🇨🇦'},
+  'Toronto Stadium':               {city:'Toronto',       country:'Canada',      lat:43.63, lon:-79.42,  tz:-5, flag:'🇨🇦'},
+  'Hard Rock Stadium':             {city:'Miami Gardens',  country:'États-Unis',  lat:25.96, lon:-80.24,  tz:-4, flag:'🇺🇸'},
+  'Stadium New York New Jersey':   {city:'East Rutherford', country:'États-Unis',  lat:40.81, lon:-74.07,  tz:-4, flag:'🇺🇸'},
+  'MetLife Stadium':               {city:'East Rutherford', country:'États-Unis',  lat:40.81, lon:-74.07,  tz:-4, flag:'🇺🇸'},
+  'Stadium Boston':                {city:'Foxborough',     country:'États-Unis',  lat:42.09, lon:-71.26,  tz:-4, flag:'🇺🇸'},
+  'Gillette Stadium':              {city:'Foxborough',     country:'États-Unis',  lat:42.09, lon:-71.26,  tz:-4, flag:'🇺🇸'},
+  'Stadium Philadelphie':          {city:'Philadelphie',   country:'États-Unis',  lat:39.90, lon:-75.16,  tz:-4, flag:'🇺🇸'},
+  'Stadium Atlanta':               {city:'Atlanta',        country:'États-Unis',  lat:33.75, lon:-84.40,  tz:-5, flag:'🇺🇸'},
+  'Stadium Kansas':                {city:'Kansas City',    country:'États-Unis',  lat:39.05, lon:-94.48,  tz:-6, flag:'🇺🇸'},
+  'Stadium Houston':               {city:'Houston',        country:'États-Unis',  lat:29.68, lon:-95.41,  tz:-6, flag:'🇺🇸'},
+  'Stadium Dallas':                {city:'Arlington',      country:'États-Unis',  lat:32.74, lon:-97.09,  tz:-5, flag:'🇺🇸'},
+  'AT&T Stadium':                  {city:'Arlington',      country:'États-Unis',  lat:32.74, lon:-97.09,  tz:-5, flag:'🇺🇸'},
+  'Stadium Miami':                 {city:'Miami Gardens',  country:'États-Unis',  lat:25.96, lon:-80.24,  tz:-4, flag:'🇺🇸'},
+};
+function getVD(v){const k=Object.keys(VENUES).find(k=>v.startsWith(k));return k?{...VENUES[k],name:k}:null;}
+
+const STADIUMS=[
+  {name:'MetLife Stadium / NY NJ',city:'East Rutherford, NJ',country:'États-Unis',flag:'🇺🇸',cap:82500,ico:'🏟',
+   lat:40.81,lon:-74.07,tz:-4,airport:'Newark (EWR)',airdist:'18 km',
+   wx:{temp:'22°C',desc:'Ensoleillé',ico:'☀️'},
+   color:'#1a3a6e',matches:['C3','I1','I4','E5','L5']},
+  {name:'SoFi Stadium',city:'Los Angeles, CA',country:'États-Unis',flag:'🇺🇸',cap:70240,ico:'🏟',
+   lat:33.95,lon:-118.33,tz:-7,airport:'LAX',airdist:'5 km',
+   wx:{temp:'24°C',desc:'Ciel dégagé',ico:'🌤'},
+   color:'#1a5a8e',matches:['D1','G2','B2','G3','D5',]},
+  {name:'AT&T Stadium',city:'Arlington, TX',country:'États-Unis',flag:'🇺🇸',cap:80000,ico:'🏟',
+   lat:32.74,lon:-97.09,tz:-5,airport:'Dallas/Fort Worth (DFW)',airdist:'26 km',
+   wx:{temp:'30°C',desc:'Chaud et ensoleillé',ico:'☀️'},
+   color:'#0d5c8a',matches:['F1','L1','J3','F6','J5']},
+  {name:'Hard Rock Stadium',city:'Miami Gardens, FL',country:'États-Unis',flag:'🇺🇸',cap:65326,ico:'🏟',
+   lat:25.96,lon:-80.24,tz:-4,airport:'Miami (MIA)',airdist:'15 km',
+   wx:{temp:'29°C',desc:'Orageux possible',ico:'⛈'},
+   color:'#1a4a2e',matches:['H2','H6','C1','K5']},
+  {name:'Gillette Stadium',city:'Foxborough, MA',country:'États-Unis',flag:'🇺🇸',cap:65878,ico:'🏟',
+   lat:42.09,lon:-71.26,tz:-4,airport:'Boston Logan (BOS)',airdist:'42 km',
+   wx:{temp:'18°C',desc:'Nuageux',ico:'🌬'},
+   color:'#2a4a6e',matches:['C4','I2','C6','L3','I5']},
+  {name:"Levi's Stadium",city:'Santa Clara, CA',country:'États-Unis',flag:'🇺🇸',cap:68500,ico:'🏟',
+   lat:37.40,lon:-121.97,tz:-7,airport:'San José (SJC)',airdist:'4 km',
+   wx:{temp:'20°C',desc:'Brumeux',ico:'🌫'},
+   color:'#1a3a5e',matches:['B6','J2','D4','J4','D6']},
+  {name:'BC Place',city:'Vancouver, BC',country:'Canada',flag:'🇨🇦',cap:54500,ico:'🏟',
+   lat:49.28,lon:-123.11,tz:-7,airport:'Vancouver (YVR)',airdist:'12 km',
+   wx:{temp:'17°C',desc:'Nuageux',ico:'⛅'},
+   color:'#2a1a6e',matches:['D2','B1','G4','B3','G5']},
+  {name:'BMO Field',city:'Toronto, ON',country:'Canada',flag:'🇨🇦',cap:45000,ico:'🏟',
+   lat:43.63,lon:-79.42,tz:-5,airport:'Toronto Pearson (YYZ)',airdist:'19 km',
+   wx:{temp:'21°C',desc:'Ensoleillé',ico:'☀️'},
+   color:'#1a4a3e',matches:['B5','L2','E1','L4','I6']},
+  {name:'Stade Azteca',city:'Mexico City, CDMX',country:'Mexique',flag:'🇲🇽',cap:87523,ico:'🏟',
+   lat:19.30,lon:-99.15,tz:-6,airport:'Mexico City (MEX)',airdist:'14 km',
+   wx:{temp:'19°C',desc:'Frais, couvert',ico:'🌥'},
+   color:'#3a1a1a',matches:['A1','K2','A6']},
+  {name:'Estadio Akron',city:'Zapopan, JAL',country:'Mexique',flag:'🇲🇽',cap:48070,ico:'🏟',
+   lat:20.68,lon:-103.46,tz:-6,airport:'Guadalajara (GDL)',airdist:'22 km',
+   wx:{temp:'26°C',desc:'Ensoleillé',ico:'☀️'},
+   color:'#4a2a1a',matches:['A2','A3','K4','H3']},
+  {name:'Estadio BBVA',city:'Guadalupe, NL',country:'Mexique',flag:'🇲🇽',cap:53500,ico:'🏟',
+   lat:25.67,lon:-100.24,tz:-6,airport:'Monterrey (MTY)',airdist:'18 km',
+   wx:{temp:'28°C',desc:'Chaud',ico:'☀️'},
+   color:'#5a3a1a',matches:['F2','F4','A5']},
+  {name:'Mercedes-Benz Stadium',city:'Atlanta, GA',country:'États-Unis',flag:'🇺🇸',cap:71000,ico:'🏟',
+   lat:33.75,lon:-84.40,tz:-5,airport:'Atlanta Hartsfield (ATL)',airdist:'15 km',
+   wx:{temp:'25°C',desc:'Humide',ico:'⛅'},
+   color:'#222222',matches:['H1','A4','H5','C2','K6']},
+  {name:'Lumen Field',city:'Seattle, WA',country:'États-Unis',flag:'🇺🇸',cap:69000,ico:'🏟',
+   lat:47.59,lon:-122.33,tz:-7,airport:'Seattle-Tacoma (SEA)',airdist:'18 km',
+   wx:{temp:'18°C',desc:'Pluie faible',ico:'🌧'},
+   color:'#0d3c5c',matches:['G1','D3','B4','G6']},
+  {name:'Lincoln Financial Field',city:'Philadelphia, PA',country:'États-Unis',flag:'🇺🇸',cap:69796,ico:'🏟',
+   lat:39.90,lon:-75.16,tz:-4,airport:'Philadelphia (PHL)',airdist:'11 km',
+   wx:{temp:'23°C',desc:'Beau temps',ico:'☀️'},
+   color:'#004c54',matches:['E4','C5','I3','E6','L6']},
+  {name:'Arrowhead Stadium',city:'Kansas City, MO',country:'États-Unis',flag:'🇺🇸',cap:76416,ico:'🏟',
+   lat:39.05,lon:-94.48,tz:-6,airport:'Kansas City (MCI)',airdist:'31 km',
+   wx:{temp:'26°C',desc:'Ensoleillé',ico:'☀️'},
+   color:'#e31837',matches:['J1','E2','F5','J6']},
+  {name:'NRG Stadium',city:'Houston, TX',country:'États-Unis',flag:'🇺🇸',cap:72220,ico:'🏟',
+   lat:29.68,lon:-95.41,tz:-6,airport:'Houston Hobby (HOU)',airdist:'16 km',
+   wx:{temp:'29°C',desc:'Très lourd',ico:'☀️'},
+   color:'#03202f',matches:['E3','K1','F3','K3','H4']}
+];
+const M=[
+  {id:'A1',g:'A',d:'2026-06-11',h:'21:00',t1:'Mexique',t2:'Afrique du Sud',v:'Stade Mexico, Mexico'},
+  {id:'A2',g:'A',d:'2026-06-12',h:'04:00',t1:'Corée du Sud',t2:'Tchéquie',v:'Stadium Guadalajara, Zapopan'},
+  {id:'A3',g:'A',d:'2026-06-19',h:'03:00',t1:'Mexique',t2:'Corée du Sud',v:'Stadium Guadalajara, Zapopan'},
+  {id:'A4',g:'A',d:'2026-06-18',h:'18:00',t1:'Tchéquie',t2:'Afrique du Sud',v:'Stadium Atlanta, Atlanta'},
+  {id:'A5',g:'A',d:'2026-06-25',h:'03:00',t1:'Afrique du Sud',t2:'Corée du Sud',v:'Stadium Monterrey, Guadalupe'},
+  {id:'A6',g:'A',d:'2026-06-25',h:'03:00',t1:'Tchéquie',t2:'Mexique',v:'Stade Mexico, Mexico'},
+  {id:'B1',g:'B',d:'2026-06-19',h:'00:00',t1:'Canada',t2:'Qatar',v:'Stadium BC Place, Vancouver'},
+  {id:'B2',g:'B',d:'2026-06-18',h:'21:00',t1:'Suisse',t2:'Bosnie',v:'Stadium Los Angeles, Inglewood'},
+  {id:'B3',g:'B',d:'2026-06-24',h:'21:00',t1:'Suisse',t2:'Canada',v:'Stadium BC Place, Vancouver'},
+  {id:'B4',g:'B',d:'2026-06-24',h:'21:00',t1:'Bosnie',t2:'Qatar',v:"Stadium Seattle, Seattle"},
+  {id:'B5',g:'B',d:'2026-06-12',h:'21:00',t1:'Canada',t2:'Bosnie',v:'Toronto Stadium, Toronto'},
+  {id:'B6',g:'B',d:'2026-06-13',h:'21:00',t1:'Qatar',t2:'Suisse',v:"Stadium San Francisco, Santa Clara"},
+  {id:'C1',g:'C',d:'2026-06-25',h:'00:00',t1:'Écosse',t2:'Brésil',v:'Hard Rock Stadium, Miami'},
+  {id:'C2',g:'C',d:'2026-06-25',h:'00:00',t1:'Maroc',t2:'Haïti',v:'Stadium Atlanta, Atlanta'},
+  {id:'C3',g:'C',d:'2026-06-14',h:'00:00',t1:'Brésil',t2:'Maroc',v:'Stadium New York New Jersey, East Rutherford'},
+  {id:'C4',g:'C',d:'2026-06-14',h:'03:00',t1:'Haïti',t2:'Écosse',v:'Stadium Boston, Foxborough'},
+  {id:'C5',g:'C',d:'2026-06-20',h:'02:30',t1:'Brésil',t2:'Haïti',v:'Stadium Philadelphie, Philadelphie'},
+  {id:'C6',g:'C',d:'2026-06-20',h:'00:00',t1:'Écosse',t2:'Maroc',v:'Gillette Stadium, Boston'},
+  {id:'D1',g:'D',d:'2026-06-13',h:'03:00',t1:'États-Unis',t2:'Paraguay',v:'Stadium Los Angeles, Inglewood'},
+  {id:'D2',g:'D',d:'2026-06-14',h:'06:00',t1:'Australie',t2:'Turquie',v:'Stadium BC Place, Vancouver'},
+  {id:'D3',g:'D',d:'2026-06-19',h:'21:00',t1:'États-Unis',t2:'Australie',v:'Stadium Seattle, Seattle'},
+  {id:'D4',g:'D',d:'2026-06-20',h:'05:00',t1:'Turquie',t2:'Paraguay',v:'Stadium San Francisco, Santa Clara'},
+  {id:'D5',g:'D',d:'2026-06-26',h:'04:00',t1:'Turquie',t2:'États-Unis',v:'Stadium Los Angeles, Inglewood'},
+  {id:'D6',g:'D',d:'2026-06-26',h:'04:00',t1:'Paraguay',t2:'Australie',v:'Stadium San Francisco, Santa Clara'},
+  {id:'E1',g:'E',d:'2026-06-20',h:'22:00',t1:'Allemagne',t2:"Côte d'Ivoire",v:'Toronto Stadium, Toronto'},
+  {id:'E2',g:'E',d:'2026-06-21',h:'02:00',t1:'Équateur',t2:'Curaçao',v:'Stadium Kansas, Kansas City'},
+  {id:'E3',g:'E',d:'2026-06-14',h:'19:00',t1:'Allemagne',t2:'Curaçao',v:'Stadium Houston, Houston'},
+  {id:'E4',g:'E',d:'2026-06-15',h:'01:00',t1:"Côte d'Ivoire",t2:'Équateur',v:'Stadium Philadelphie, Philadelphie'},
+  {id:'E5',g:'E',d:'2026-06-25',h:'22:00',t1:'Équateur',t2:'Allemagne',v:'Stadium New York New Jersey, East Rutherford'},
+  {id:'E6',g:'E',d:'2026-06-25',h:'22:00',t1:'Curaçao',t2:"Côte d'Ivoire",v:'Stadium Philadelphie, Philadelphie'},
+  {id:'F1',g:'F',d:'2026-06-14',h:'22:00',t1:'Pays-Bas',t2:'Japon',v:'Stadium Dallas, Arlington'},
+  {id:'F2',g:'F',d:'2026-06-15',h:'04:00',t1:'Suède',t2:'Tunisie',v:'Stadium Monterrey, Guadalupe'},
+  {id:'F3',g:'F',d:'2026-06-20',h:'19:00',t1:'Pays-Bas',t2:'Suède',v:'Stadium Houston, Houston'},
+  {id:'F4',g:'F',d:'2026-06-21',h:'06:00',t1:'Tunisie',t2:'Japon',v:'Stadium Monterrey, Guadalupe'},
+  {id:'F5',g:'F',d:'2026-06-26',h:'20:00',t1:'Tunisie',t2:'Pays-Bas',v:'Stadium Kansas, Kansas City'},
+  {id:'F6',g:'F',d:'2026-06-26',h:'01:00',t1:'Japon',t2:'Suède',v:'AT&T Stadium, Dallas'},
+  {id:'G1',g:'G',d:'2026-06-15',h:'21:00',t1:'Belgique',t2:'Égypte',v:'Stadium Seattle, Seattle'},
+  {id:'G2',g:'G',d:'2026-06-16',h:'03:00',t1:'Iran',t2:'Nouvelle-Zélande',v:'Stadium Los Angeles, Inglewood'},
+  {id:'G3',g:'G',d:'2026-06-21',h:'21:00',t1:'Belgique',t2:'Iran',v:'Stadium Los Angeles, Inglewood'},
+  {id:'G4',g:'G',d:'2026-06-22',h:'03:00',t1:'Nouvelle-Zélande',t2:'Égypte',v:'Stadium BC Place, Vancouver'},
+  {id:'G5',g:'G',d:'2026-06-27',h:'05:00',t1:'Nouvelle-Zélande',t2:'Belgique',v:'Stadium BC Place, Vancouver'},
+  {id:'G6',g:'G',d:'2026-06-27',h:'05:00',t1:'Égypte',t2:'Iran',v:"Stadium Seattle, Seattle"},
+  {id:'H1',g:'H',d:'2026-06-15',h:'18:00',t1:'Espagne',t2:'Cap-Vert',v:'Stadium Atlanta, Atlanta'},
+  {id:'H2',g:'H',d:'2026-06-16',h:'00:00',t1:'Arabie Saoudite',t2:'Uruguay',v:'Stadium Miami, Miami Gardens'},
+  {id:'H3',g:'H',d:'2026-06-27',h:'02:00',t1:'Uruguay',t2:'Espagne',v:'Stadium Houston, Houston'},
+  {id:'H4',g:'H',d:'2026-06-27',h:'02:00',t1:'Cap-Vert',t2:'Arabie Saoudite',v:'Stadium Houston, Houston'},
+  {id:'H5',g:'H',d:'2026-06-21',h:'18:00',t1:'Espagne',t2:'Arabie Saoudite',v:'Stadium Atlanta, Atlanta'},
+  {id:'H6',g:'H',d:'2026-06-22',h:'00:00',t1:'Uruguay',t2:'Cap-Vert',v:'Stadium Miami, Miami Gardens'},
+  {id:'I1',g:'I',d:'2026-06-16',h:'21:00',t1:'France',t2:'Sénégal',v:'Stadium New York New Jersey, East Rutherford'},
+  {id:'I2',g:'I',d:'2026-06-17',h:'00:00',t1:'Irak',t2:'Norvège',v:'Stadium Boston, Foxborough'},
+  {id:'I3',g:'I',d:'2026-06-22',h:'23:00',t1:'France',t2:'Irak',v:'Stadium Philadelphie, Philadelphie'},
+  {id:'I4',g:'I',d:'2026-06-23',h:'02:00',t1:'Norvège',t2:'Sénégal',v:'Stadium New York New Jersey, East Rutherford'},
+  {id:'I5',g:'I',d:'2026-06-26',h:'21:00',t1:'Norvège',t2:'France',v:'Gillette Stadium, Boston'},
+  {id:'I6',g:'I',d:'2026-06-26',h:'21:00',t1:'Sénégal',t2:'Irak',v:'Toronto Stadium, Toronto'},
+  {id:'J1',g:'J',d:'2026-06-17',h:'03:00',t1:'Argentine',t2:'Algérie',v:'Stadium Kansas, Kansas City'},
+  {id:'J2',g:'J',d:'2026-06-17',h:'06:00',t1:'Autriche',t2:'Jordanie',v:'Stadium San Francisco, Santa Clara'},
+  {id:'J3',g:'J',d:'2026-06-22',h:'19:00',t1:'Argentine',t2:'Autriche',v:'AT&T Stadium, Dallas'},
+  {id:'J4',g:'J',d:'2026-06-23',h:'05:00',t1:'Jordanie',t2:'Algérie',v:'Stadium San Francisco, Santa Clara'},
+  {id:'J5',g:'J',d:'2026-06-28',h:'04:00',t1:'Jordanie',t2:'Argentine',v:'AT&T Stadium, Dallas'},
+  {id:'J6',g:'J',d:'2026-06-28',h:'04:00',t1:'Algérie',t2:'Autriche',v:'Stadium Kansas, Kansas City'},
+  {id:'K1',g:'K',d:'2026-06-17',h:'19:00',t1:'Portugal',t2:'RD Congo',v:'Stadium Houston, Houston'},
+  {id:'K2',g:'K',d:'2026-06-18',h:'04:00',t1:'Ouzbékistan',t2:'Colombie',v:'Stade Mexico, Mexico'},
+  {id:'K3',g:'K',d:'2026-06-23',h:'19:00',t1:'Portugal',t2:'Ouzbékistan',v:'Gillette Stadium, Boston'},
+  {id:'K4',g:'K',d:'2026-06-24',h:'04:00',t1:'Colombie',t2:'RD Congo',v:'Stadium Guadalajara, Zapopan'},
+  {id:'K5',g:'K',d:'2026-06-28',h:'01:30',t1:'Colombie',t2:'Portugal',v:'Stadium Miami, Miami Gardens'},
+  {id:'K6',g:'K',d:'2026-06-28',h:'01:30',t1:'RD Congo',t2:'Ouzbékistan',v:'Stadium Atlanta, Atlanta'},
+  {id:'L1',g:'L',d:'2026-06-17',h:'22:00',t1:'Angleterre',t2:'Croatie',v:'Stadium Dallas, Arlington'},
+  {id:'L2',g:'L',d:'2026-06-18',h:'01:00',t1:'Ghana',t2:'Panama',v:"Toronto Stadium, Toronto"},
+  {id:'L3',g:'L',d:'2026-06-23',h:'22:00',t1:'Angleterre',t2:'Ghana',v:'Gillette Stadium, Boston'},
+  {id:'L4',g:'L',d:'2026-06-24',h:'01:00',t1:'Panama',t2:'Croatie',v:'Toronto Stadium, Toronto'},
+  {id:'L5',g:'L',d:'2026-06-27',h:'23:00',t1:'Panama',t2:'Angleterre',v:'Stadium New York New Jersey, East Rutherford'},
+  {id:'L6',g:'L',d:'2026-06-27',h:'23:00',t1:'Croatie',t2:'Ghana',v:'Stadium Philadelphie, Philadelphie'},
+];
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  DRAPEAUX AUTOMATIQUES PAR PAYS                        ║
+// ╚═══════════════════════════════════════════════════════╝
+const FLAG_MAP = {
+  // Amériques
+  'États-Unis':'🇺🇸','USA':'🇺🇸','Canada':'🇨🇦','Mexique':'🇲🇽',
+  'Brésil':'🇧🇷','Argentine':'🇦🇷','Uruguay':'🇺🇾','Colombie':'🇨🇴',
+  'Équateur':'🇪🇨','Pérou':'🇵🇪','Venezuela':'🇻🇪','Chili':'🇨🇱',
+  'Bolivie':'🇧🇴','Paraguay':'🇵🇾','Panama':'🇵🇦','Costa Rica':'🇨🇷',
+  'Honduras':'🇭🇳','Guatemala':'🇬🇹','El Salvador':'🇸🇻','Jamaïque':'🇯🇲',
+  'Trinité-et-Tobago':'🇹🇹','Haïti':'🇭🇹','Cuba':'🇨🇺',
+  // Europe
+  'France':'🇫🇷','Espagne':'🇪🇸','Allemagne':'🇩🇪','Portugal':'🇵🇹',
+  'Angleterre':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Belgique':'🇧🇪','Pays-Bas':'🇳🇱','Italie':'🇮🇹',
+  'Croatie':'🇭🇷','Serbie':'🇷🇸','Suisse':'🇨🇭','Danemark':'🇩🇰',
+  'Pologne':'🇵🇱','Autriche':'🇦🇹','Hongrie':'🇭🇺','Tchéquie':'🇨🇿',
+  'Slovaquie':'🇸🇰','Slovénie':'🇸🇮','Albanie':'🇦🇱','Écosse':'🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+  'Pays de Galles':'🏴󠁧󠁢󠁷󠁬󠁳󠁿','Turquie':'🇹🇷','Ukraine':'🇺🇦','Roumanie':'🇷🇴',
+  'Bulgarie':'🇧🇬','Grèce':'🇬🇷','Suède':'🇸🇪','Norvège':'🇳🇴',
+  'Finlande':'🇫🇮','Islande':'🇮🇸','Russie':'🇷🇺','Géorgie':'🇬🇪',
+  // Afrique
+  'Maroc':'🇲🇦','Sénégal':'🇸🇳','Nigéria':'🇳🇬','Cameroun':'🇨🇲',
+  'Côte d\'Ivoire':'🇨🇮','Ghana':'🇬🇭','Égypte':'🇪🇬','Algérie':'🇩🇿',
+  'Tunisie':'🇹🇳','Mali':'🇲🇱','Guinée':'🇬🇳','RD Congo':'🇨🇩',
+  'Congo':'🇨🇬','Zambie':'🇿🇲','Zimbabwe':'🇿🇼','Mozambique':'🇲🇿',
+  'Afrique du Sud':'🇿🇦','Cap-Vert':'🇨🇻','Bénin':'🇧🇯',
+  // Asie
+  'Japon':'🇯🇵','Corée du Sud':'🇰🇷','Arabie Saoudite':'🇸🇦','Iran':'🇮🇷',
+  'Australie':'🇦🇺','Qatar':'🇶🇦','Irak':'🇮🇶','Jordanie':'🇯🇴',
+  'Ouzbékistan':'🇺🇿','Bahreïn':'🇧🇭','Émirats arabes unis':'🇦🇪',
+  'Chine':'🇨🇳','Thaïlande':'🇹🇭','Vietnam':'🇻🇳','Inde':'🇮🇳',
+  'Indonésie':'🇮🇩','Philippines':'🇵🇭','Kirghizistan':'🇰🇬',
+  // Océanie
+  'Nouvelle-Zélande':'🇳🇿','Fidji':'🇫🇯',
+  // Autres
+  'TBD':'❓','?':'❓',
+};
+
+function getFlag(countryName) {
+  if (!countryName) return '🏳';
+  // Cherche le nom exact d'abord
+  if (FLAG_MAP[countryName]) return FLAG_MAP[countryName];
+  // Sinon cherche partiellement
+  const key = Object.keys(FLAG_MAP).find(k => 
+    countryName.toLowerCase().includes(k.toLowerCase()) || 
+    k.toLowerCase().includes(countryName.toLowerCase())
+  );
+  return key ? FLAG_MAP[key] : '🏳';
+}
+
+
+let SC={};try{SC=JSON.parse(localStorage.getItem('wc26s')||'{}');}catch(e){}
+const GKS=Object.keys(GRP);
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  GOOGLE SHEET — URLs par feuille                       ║
+// ╚═══════════════════════════════════════════════════════╝
+const SHEET_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTIuFrdGDdTWqrxwXP0idNyI0koxY6huFlkaAvmKNT89hQckowqHCSItRWZ2VkFLXaEU5R0xviH7GJe/pub";
+
+// GIDs de chaque feuille — à remplir avec vos vrais GIDs
+const SHEET_GIDS = {
+  groupes:       '1384646921',        // Feuille "groupes"
+  seizieme:      '1101162501', // Feuille "seizieme" — remplacer par vrai GID
+  huitieme:      '275441372', // Feuille "huitieme"
+  quarts:        '1264327944', // Feuille "quarts"
+  demies:        '38819018', // Feuille "demies"
+  finale:        '2147359161', // Feuille "finale"
+  petite_finale: '989990110', // Feuille "petite_finale"
+};
+
+function sheetUrl(gidKey) {
+  return `${SHEET_BASE}?gid=${SHEET_GIDS[gidKey]}&single=true&output=csv`;
+}
+
+// Données knockout chargées depuis le Sheet
+let KO_DATA = {
+  seizieme: [],
+  huitieme: [],
+  quarts: [],
+  demies: [],
+  finale: [],
+  petite_finale: [],
+};
+
+// Parse une ligne CSV knockout
+// Colonnes : id,date,heure,equipe1,equipe2,score1,score2,stade,ville,lat,lon,gps_url
+function parseKOLine(line) {
+  // Gestion des virgules dans les champs entre guillemets
+  const parts = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    if (line[i] === '"') { inQ = !inQ; continue; }
+    if (line[i] === ',' && !inQ) { parts.push(cur.trim()); cur = ''; }
+    else cur += line[i];
+  }
+  parts.push(cur.trim());
+  if (parts.length < 5 || !parts[0]) return null;
+  return {
+    id:     parts[0],
+    d:      parts[1] || '',
+    h:      parts[2] || '',
+    t1:     parts[3] || 'TBD',
+    t2:     parts[4] || 'TBD',
+    s1:     parts[5] !== '' && parts[5] !== undefined ? parseInt(parts[5], 10) : null,
+    s2:     parts[6] !== '' && parts[6] !== undefined ? parseInt(parts[6], 10) : null,
+    stade:  parts[7] || '',
+    ville:  parts[8] || '',
+    lat:    parseFloat(parts[9]) || null,
+    lon:    parseFloat(parts[10]) || null,
+    gps:    parts[11] || '',
+    f1:     getFlag(parts[3] || ''),
+    f2:     getFlag(parts[4] || ''),
+  };
+}
+
+// Charge une feuille knockout
+function fetchKOSheet(gidKey) {
+  return fetch(sheetUrl(gidKey))
+    .then(r => r.text())
+    .then(csv => {
+      const lines = csv.split('\n').slice(1);
+      const matches = [];
+      lines.forEach(line => {
+        if (!line.trim()) return;
+        const m = parseKOLine(line);
+        if (m) matches.push(m);
+      });
+      KO_DATA[gidKey] = matches;
+      // Stocker les scores dans SC pour compatibilité
+      matches.forEach(m => {
+        if (m.s1 !== null && m.s2 !== null) {
+          SC[m.id] = { s1: m.s1, s2: m.s2 };
+        }
+      });
+    })
+    .catch(err => console.warn(`Erreur feuille ${gidKey}:`, err));
+}
+
+// Charge les scores groupes (feuille existante)
+function fetchScoresFromSheet() {
+  fetch(sheetUrl('groupes'))
+    .then(res => res.text())
+    .then(csv => {
+      const lines = csv.split('\n').slice(1);
+      let updated = false;
+      lines.forEach(line => {
+        const parts = line.split(',').map(x => x.trim());
+        if (parts.length >= 3) {
+          const id = parts[0], s1 = parts[1], s2 = parts[2];
+          if (id && s1 !== '' && s2 !== '') {
+            SC[id] = { s1: parseInt(s1, 10), s2: parseInt(s2, 10) };
+            updated = true;
+          }
+        }
+      });
+      if (updated) {
+        localStorage.setItem('wc26s', JSON.stringify(SC));
+        const av = document.querySelector('.view.active');
+        if (av) rebuildView(av.id);
+      }
+    })
+    .catch(err => console.error('Erreur scores groupes:', err));
+}
+
+// Charge TOUTES les feuilles knockout
+function fetchAllKOSheets() {
+  const keys = ['seizieme','huitieme','quarts','demies','finale','petite_finale'];
+  Promise.all(keys.map(k => fetchKOSheet(k))).then(() => {
+    const av = document.querySelector('.view.active');
+    if (av) rebuildView(av.id);
+    buildRCal(); // Rafraîchit le calendrier en direct
+  });
+}
+
+let curGrpIdx=0,rcalP=0,calP=0,selMatch=null,venueTz=null,hlGk=null;
+const PH=[{l:'Groupes'},{l:'1/16ᵉ'},{l:'1/8ᵉ'},{l:'Quarts'},{l:'Demies'},{l:'Finale'}];
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  DÉTECTION AUTOMATIQUE DE LA PHASE COURANTE            ║
+// ╚═══════════════════════════════════════════════════════╝
+const PHASE_DATES = [
+  { key: 'Finale',   label: 'Finale',  from: '2026-07-18', phIdx: 5 },
+  { key: 'demies',   label: 'Demies',  from: '2026-07-14', phIdx: 4 },
+  { key: 'quarts',   label: 'Quarts',  from: '2026-07-09', phIdx: 3 },
+  { key: 'huitieme', label: '1/8ᵉ',   from: '2026-07-05', phIdx: 2 },
+  { key: 'seizieme', label: '1/16ᵉ',  from: '2026-06-29', phIdx: 1 },
+  { key: 'groupes',  label: 'Groupes', from: '2026-06-11', phIdx: 0 },
+];
+
+function getCurrentPhase() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  for (const ph of PHASE_DATES) {
+    const d = new Date(ph.from + 'T00:00:00');
+    if (today >= d) return ph;
+  }
+  return PHASE_DATES[PHASE_DATES.length - 1]; // Groupes par défaut
+}
+
+// Index de pill actif pour rcal (calendrier droit)
+// Sera initialisé au démarrage
+let rcalPhaseOverride = null; // null = auto
+
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  CLOCKS                                                ║
+// ╚═══════════════════════════════════════════════════════╝
+function p2(n){return String(n).padStart(2,'0');}
+function tick(){
+  const now=new Date();
+  document.getElementById('clr-val').textContent=`${p2(now.getHours())}:${p2(now.getMinutes())}:${p2(now.getSeconds())}`;
+  document.getElementById('clr-sub').textContent=Intl.DateTimeFormat().resolvedOptions().timeZone||'';
+  if(venueTz!==null){
+    const vt=new Date(now.getTime()+(now.getTimezoneOffset()*60000)+venueTz*3600000);
+    document.getElementById('cll-val').textContent=`${p2(vt.getHours())}:${p2(vt.getMinutes())}:${p2(vt.getSeconds())}`;
+  }
+}
+setInterval(tick,1000);tick();
+
+function selectMatch(id){
+  const m = M.find(x=>x.id===id);
+  if(!m) return;
+  selMatch = m;
+  setMClock(m);
+  // Switcher vers la vue globale pour voir le globe
+  switchTab('vw');
+}
+
+function setMClock(m){
+  const vd=getVD(m.v);if(!vd)return;
+  venueTz=vd.tz;
+  document.getElementById('cll-lbl').textContent=vd.city.toUpperCase();
+  document.getElementById('cll-sub').textContent=(vd.name||m.v.split(',')[0])+' · '+vd.country;
+  document.getElementById('clk-l').classList.add('lit');
+  zoomTo(vd.lat,vd.lon,vd.name||m.v.split(',')[0],vd.city);
+}
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  STANDINGS                                             ║
+// ╚═══════════════════════════════════════════════════════╝
+function standings(gk){
+  const ts=GRP[gk].t.map(t=>({...t,p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}));
+  M.filter(m=>m.g===gk).forEach(m=>{
+    const s=SC[m.id];if(!s)return;
+    const t1=ts.find(t=>t.n===m.t1),t2=ts.find(t=>t.n===m.t2);if(!t1||!t2)return;
+    t1.p++;t2.p++;t1.gf+=s.s1;t1.ga+=s.s2;t2.gf+=s.s2;t2.ga+=s.s1;
+    if(s.s1>s.s2){t1.w++;t1.pts+=3;t2.l++;}
+    else if(s.s1<s.s2){t2.w++;t2.pts+=3;t1.l++;}
+    else{t1.d++;t2.d++;t1.pts++;t2.pts++;}
+  });
+  return ts.sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga)||b.gf-a.gf);
+}
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  LEFT PANEL                                            ║
+// ╚═══════════════════════════════════════════════════════╝
+function renderLP(gk){
+  const gd=GRP[gk];
+  document.getElementById('lp-t').textContent='GROUPE '+gk;
+  document.getElementById('lp-t').style.color=gd.c;
+  const st=standings(gk);
+  const gms=M.filter(m=>m.g===gk);
+  let h=`<table class="stbl"><thead><tr>
+    <th>#</th><th style="text-align:left">Équipe</th>
+    <th>J</th><th>V</th><th>N</th><th>D</th><th>BP</th><th>BC</th><th>Pts</th>
+  </tr></thead><tbody>`;
+  st.forEach((t,i)=>{
+    const q=i<2;
+    h+=`<tr class="${q?'qrow':''}"><td><span class="rk ${q?'q'+(i+1):''}">${i+1}</span></td>
+    <td><div class="tr-r"><span class="tf">${t.f}</span><span class="tn">${t.n}</span></div></td>
+    <td>${t.p}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td><td>${t.gf}</td><td>${t.ga}</td>
+    <td><strong>${t.pts}</strong></td></tr>`;
+  });
+  h+=`</tbody></table><div class="qnote">${T('q_note')}</div><div class="msect">${T('matches')}</div>`;
+  gms.forEach(m=>{
+    const s=SC[m.id];
+    const f1=gd.t.find(t=>t.n===m.t1)||{f:'🏳'},f2=gd.t.find(t=>t.n===m.t2)||{f:'🏳'};
+    const vd=getVD(m.v);
+    const sel=selMatch&&selMatch.id===m.id;
+    h+=`<div class="mk${sel?' sel':''}" data-mid="${m.id}" onclick="clickM('${m.id}')">
+      <div class="mm">📅 ${fmtD(m.d)} · ${m.h}</div>
+      <div class="mv">📍 ${m.v.split(',')[0]}${vd?', '+vd.city:''}</div>
+      <div class="mt">
+        <div class="mteam l"><span class="mtf">${f1.f}</span><span class="mtn">${m.t1}</span></div>
+        <div class="msc">
+          <input class="si" type="number" min="0" max="20" value="${s?s.s1:''}" placeholder="?"
+            onchange="saveScore('${m.id}',0,this.value)" onclick="event.stopPropagation()"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <span class="sd">—</span>
+          <input class="si" type="number" min="0" max="20" value="${s?s.s2:''}" placeholder="?"
+            onchange="saveScore('${m.id}',1,this.value)" onclick="event.stopPropagation()"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        </div>
+        <div class="mteam r"><span class="mtf">${f2.f}</span><span class="mtn">${m.t2}</span></div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('lp-b').innerHTML=h;
+}
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  POSITIONNEMENT GLOBE SUR STADE                        ║
+// ╚═══════════════════════════════════════════════════════╝
+function centerGlobeOnStadium(lat, lon) {
+  if (!r3 || !gg3) return; // Pas de globe initialisé
+  if (lat === null || lon === null) return;
+  
+  // Convertir lat/lon en vecteur 3D sur la sphère
+  const pos = ll3(lat, lon, 1.15); // 1.15 = zoom légèrement éloigné
+  
+  // Animer la caméra vers cette position
+  const currentPos = new THREE.Vector3();
+  r3.camera.position.copy(currentPos);
+  
+  // Utiliser Tween ou simple animation
+  const startPos = r3.camera.position.clone();
+  const endPos = pos.clone();
+  endPos.normalize().multiplyScalar(1.8); // Distance caméra
+  
+  const duration = 1000; // ms
+  const start = Date.now();
+  
+  function animateCamera() {
+    const elapsed = Date.now() - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const easeProgress = progress < 0.5
+      ? 2 * progress * progress
+      : -1 + (4 - 2 * progress) * progress; // Ease in-out
+    
+    r3.camera.position.lerpVectors(startPos, endPos, easeProgress);
+    r3.camera.lookAt(0, 0, 0);
+    
+    if (progress < 1) {
+      requestAnimationFrame(animateCamera);
+    }
+  }
+  animateCamera();
+}
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  CLIC SUR MATCH KNOCKOUT — avec géolocalisation        ║
+// ╚═══════════════════════════════════════════════════════╝
+function clickKOMatch(id, lat, lon) {
+  // Positionner le globe
+  if (lat !== null && lat !== undefined && lon !== null && lon !== undefined) {
+    centerGlobeOnStadium(lat, lon);
+  }
+  // Marquer le match sélectionné (optionnel, pour ajouter une classe CSS)
+  document.querySelectorAll('.cmc.ko-match').forEach(el => {
+    el.classList.toggle('sel', el.getAttribute('data-mid') === id);
+  });
+}
+
+
+
+function navGrp(d){curGrpIdx=(curGrpIdx+d+GKS.length)%GKS.length;renderLP(GKS[curGrpIdx]);hlW(GKS[curGrpIdx]);}
+function clickM(id){
+  const m = M.find(x=>x.id===id);
+  if(!m) return;
+  selMatch = m;
+  
+  // ═══ NOUVEAU : Positionner le globe sur le stade ═══
+  const vd = getVD(m.v); // Récupère les coords du stade
+  if(vd && vd.la !== undefined && vd.lo !== undefined) {
+    centerGlobeOnStadium(vd.la, vd.lo);
+  }
+  
+  if (typeof setMClock === 'function') {
+    setMClock(m);
+  }
+
+
+  // ─── NOUVEAU : Changer le groupe affiché à gauche ───
+  if (m.g && typeof GKS !== 'undefined') {
+    const gIdx = GKS.indexOf(m.g);
+    if (gIdx !== -1) {
+      curGrpIdx = gIdx;         // Met à jour l'index du groupe actuel
+      if (typeof clickGrp === 'function') clickGrp(m.g); // Recharge le panneau de gauche (La bonne fonction !)
+      if (typeof switchTab === 'function') switchTab('vw'); // Bascule sur le bon onglet si nécessaire
+    }
+  }
+
+  // Met à jour les calendriers pour appliquer la surbrillance (selMatch)
+  if (typeof buildCalendar === 'function') buildCalendar(); 
+  if (typeof buildRCal === 'function') buildRCal();
+}
+
+function saveScore(id,side,val){
+  const s=SC[id]||{s1:'',s2:''};
+  if(side===0)s.s1=val!==''?parseInt(val):'';
+  else s.s2=val!==''?parseInt(val):'';
+  if(s.s1!==''&&s.s2!==''){
+    SC[id]=s;try{localStorage.setItem('wc26s',JSON.stringify(SC));}catch(e){}
+    showToast('✅ Score enregistré !');
+    renderLP(GKS[curGrpIdx]);buildRCal();
+    if(document.getElementById('vk').classList.contains('active'))buildKO();
+  }
+}
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  WHEEL — Single band, letter centered between flags    ║
+// ╚═══════════════════════════════════════════════════════╝
+function buildWheel(){
+  const cc=document.getElementById('cc');
+  const W=cc.offsetWidth||700,H=cc.offsetHeight||700;
+  const size=Math.min(W,H)*0.97;
+  const ww=document.getElementById('ww');
+  ww.style.width=size+'px';ww.style.height=size+'px';
+  const svg=document.getElementById('wsvg');
+  svg.setAttribute('viewBox',`0 0 ${size} ${size}`);
+  svg.setAttribute('width',size);svg.setAttribute('height',size);
+  const cx=size/2,cy=size/2;
+  // Globe fills ~52% of total → R_IN = size*0.26
+  const R_OUT=size*0.499;
+const R_IN=size*0.40;   // Globe occupe 80% du diamètre total
+  const N=GKS.length;
+  const ANG=2*Math.PI/N;
+  svg.innerHTML='';
+
+  // Defs with 3D-like gradients per group
+  let defsHTML=`<filter id="gf"><feGaussianBlur stdDeviation="4.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="sf2"><feDropShadow dx="2" dy="3" stdDeviation="3" flood-color="rgba(0,0,0,0.9)" flood-opacity="0.85"/><feDropShadow dx="-1" dy="-1" stdDeviation="1" flood-color="rgba(255,255,255,0.25)" flood-opacity="0.5"/></filter>
+    <radialGradient id="idark" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(3,6,15,1)"/><stop offset="100%" stop-color="rgba(6,12,32,0.97)"/></radialGradient>`;
+  // One gradient per group for 3D effect
+  GKS.forEach((gk,i)=>{
+    const c=GRP[gk].c;
+    // Parse color to lighten/darken
+    const r=parseInt(c.slice(1,3),16),g=parseInt(c.slice(3,5),16),b=parseInt(c.slice(5,7),16);
+    const lc=`rgb(${Math.min(255,r+60)},${Math.min(255,g+60)},${Math.min(255,b+60)})`;
+    const dc=`rgb(${Math.max(0,r-40)},${Math.max(0,g-40)},${Math.max(0,b-40)})`;
+    defsHTML+=`<linearGradient id="sg${i}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${lc}" stop-opacity="0.95"/>
+      <stop offset="50%" stop-color="${c}" stop-opacity="1"/>
+      <stop offset="100%" stop-color="${dc}" stop-opacity="0.9"/>
+    </linearGradient>`;
+  });
+  const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+  defs.innerHTML=defsHTML;
+  svg.appendChild(defs);
+
+  function pt(r,a){return[cx+r*Math.cos(a),cy+r*Math.sin(a)];}
+  function sector(r1,r2,a0,a1,gap){
+    const[x1,y1]=pt(r2,a0+gap),[x2,y2]=pt(r2,a1-gap);
+    const[x3,y3]=pt(r1,a1-gap),[x4,y4]=pt(r1,a0+gap);
+    const lf=(a1-a0-2*gap)>Math.PI?1:0;
+    return`M${x1} ${y1}A${r2} ${r2} 0 ${lf} 1 ${x2} ${y2}L${x3} ${y3}A${r1} ${r1} 0 ${lf} 0 ${x4} ${y4}Z`;
+  }
+
+  GKS.forEach((gk,i)=>{
+    const gd=GRP[gk];
+    const a0=i*ANG-Math.PI/2,a1=a0+ANG,am=(a0+a1)/2;
+    const GAP=0.013;
+    const isHL=hlGk===gk;
+
+    // ── Sector with 3D gradient ──
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d',sector(R_IN,R_OUT,a0,a1,GAP));
+    p.setAttribute('fill',`url(#sg${i})`);
+    p.setAttribute('opacity',isHL?'1':'0.82');
+    p.setAttribute('data-gk',gk);
+    p.style.cursor='pointer';p.style.transition='opacity .15s';
+    p.addEventListener('mouseenter',()=>{p.setAttribute('opacity','1');p.setAttribute('filter','url(#gf)');});
+    p.addEventListener('mouseleave',()=>{p.setAttribute('opacity',isHL?'1':'0.82');p.removeAttribute('filter');});
+    p.addEventListener('click',()=>clickGrp(gk));
+    svg.appendChild(p);
+
+    // ── 3D bevel: inner light edge ──
+    const bevel=document.createElementNS('http://www.w3.org/2000/svg','path');
+    const bGap=GAP+0.004;
+    bevel.setAttribute('d',sector(R_IN+3,R_IN+8,a0,a1,bGap));
+    bevel.setAttribute('fill','rgba(255,255,255,0.12)');
+    bevel.setAttribute('pointer-events','none');
+    svg.appendChild(bevel);
+
+    // ── Group letter — centered in the slice, between flag rows, with 3D text effect ──
+    const MR=(R_IN+R_OUT)/2;
+    const[lx,ly]=pt(MR,am);
+    const rotDeg=am*180/Math.PI+90;
+    const fontSize=Math.round(size*0.05);
+
+    // Shadow text (3D depth)
+    // 3D letter — multiple layers for depth effect
+    const offsets=[{dx:3,dy:4,op:'0.7',fill:'rgba(0,0,0,0.8)'},{dx:2,dy:3,op:'0.5',fill:'rgba(0,0,0,0.6)'},{dx:1,dy:1.5,op:'0.4',fill:'rgba(0,0,0,0.4)'}];
+    offsets.forEach(({dx,dy,op,fill})=>{
+      const sh=document.createElementNS('http://www.w3.org/2000/svg','text');
+      sh.setAttribute('x',lx+dx);sh.setAttribute('y',ly+dy);
+      sh.setAttribute('text-anchor','middle');sh.setAttribute('dominant-baseline','middle');
+      sh.setAttribute('font-family','Bebas Neue,sans-serif');sh.setAttribute('font-size',fontSize);
+      sh.setAttribute('fill',fill);sh.setAttribute('opacity',op);sh.setAttribute('pointer-events','none');
+      sh.setAttribute('transform',`rotate(${rotDeg},${lx},${ly})`);
+      sh.textContent=gk;svg.appendChild(sh);
+    });
+    // Highlight top-left edge (light reflection)
+    const shine=document.createElementNS('http://www.w3.org/2000/svg','text');
+    shine.setAttribute('x',lx-1);shine.setAttribute('y',ly-1.5);
+    shine.setAttribute('text-anchor','middle');shine.setAttribute('dominant-baseline','middle');
+    shine.setAttribute('font-family','Bebas Neue,sans-serif');shine.setAttribute('font-size',fontSize);
+    shine.setAttribute('fill','rgba(255,255,255,0.35)');shine.setAttribute('pointer-events','none');
+    shine.setAttribute('transform',`rotate(${rotDeg},${lx},${ly})`);
+    shine.textContent=gk;svg.appendChild(shine);
+    // Main white letter
+    const lt=document.createElementNS('http://www.w3.org/2000/svg','text');
+    lt.setAttribute('x',lx);lt.setAttribute('y',ly);
+    lt.setAttribute('text-anchor','middle');lt.setAttribute('dominant-baseline','middle');
+    lt.setAttribute('font-family','Bebas Neue,sans-serif');lt.setAttribute('font-size',fontSize);
+    lt.setAttribute('fill','rgba(255,255,255,0.98)');lt.setAttribute('pointer-events','none');
+    lt.setAttribute('filter','url(#sf2)');
+    lt.setAttribute('transform',`rotate(${rotDeg},${lx},${ly})`);
+    lt.textContent=gk;svg.appendChild(lt);
+
+    // ── 4 flags: 2 on each side of the letter, along the arc ──
+    // Layout: flag0 outer-left, flag1 inner-left, letter (center), flag2 inner-right, flag3 outer-right
+    // Use 2 radii and 2 angular offsets to place flags symmetrically around the letter
+    const halfSlice=(ANG-2*GAP)*0.38;
+    const fRo=R_IN+(R_OUT-R_IN)*0.74; // outer flags radius
+    const fRi=R_IN+(R_OUT-R_IN)*0.34; // inner flags radius
+    const flagFS=Math.round(size*0.062); // flag font size
+    const smallFlagFS=Math.round(size*0.048); // for tightly packed slices
+
+    const fPos=[
+      {r:fRo,a:am-halfSlice*0.7},  // 0: outer-left
+      {r:fRi,a:am-halfSlice*0.65}, // 1: inner-left
+      {r:fRi,a:am+halfSlice*0.65}, // 2: inner-right
+      {r:fRo,a:am+halfSlice*0.7},  // 3: outer-right
+    ];
+
+    gd.t.forEach((team,ti)=>{
+      const{r,a}=fPos[ti];
+      const[fx,fy]=pt(r,a);
+      const rotF=a*180/Math.PI+90;
+      const fs=N>10?smallFlagFS:flagFS;
+
+      // Flag shadow
+      const fsh=document.createElementNS('http://www.w3.org/2000/svg','text');
+      fsh.setAttribute('x',fx+1);fsh.setAttribute('y',fy+1);
+      fsh.setAttribute('text-anchor','middle');fsh.setAttribute('dominant-baseline','middle');
+      fsh.setAttribute('font-size',fs);fsh.setAttribute('opacity','0.4');
+      fsh.setAttribute('pointer-events','none');
+      fsh.setAttribute('transform',`rotate(${rotF},${fx},${fy})`);
+      fsh.textContent=team.f;
+      svg.appendChild(fsh);
+
+      // Flag
+      const fg=document.createElementNS('http://www.w3.org/2000/svg','text');
+      fg.setAttribute('x',fx);fg.setAttribute('y',fy);
+      fg.setAttribute('text-anchor','middle');fg.setAttribute('dominant-baseline','middle');
+      fg.setAttribute('font-size',fs);
+      fg.setAttribute('pointer-events','none');
+      fg.setAttribute('transform',`rotate(${rotF},${fx},${fy})`);
+      fg.textContent=team.f;
+      svg.appendChild(fg);
+    });
+  });
+
+  // Outer rim
+  const rim=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  rim.setAttribute('cx',cx);rim.setAttribute('cy',cy);rim.setAttribute('r',R_OUT+1.5);
+  rim.setAttribute('fill','none');rim.setAttribute('stroke','rgba(255,215,0,0.25)');rim.setAttribute('stroke-width','2');
+  svg.appendChild(rim);
+
+  // Inner dark disc — the globe sits here
+  const id2=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  id2.setAttribute('cx',cx);id2.setAttribute('cy',cy);id2.setAttribute('r',R_IN+1);
+  id2.setAttribute('fill','url(#idark)');
+  id2.setAttribute('stroke','rgba(20,50,130,0.6)');id2.setAttribute('stroke-width','1.5');
+  svg.appendChild(id2);
+
+  // Position globe canvas to perfectly fill inner circle
+  const gD=Math.round((R_IN-4)*2);
+  const gL=Math.round(cx-R_IN+4);
+  const gT=Math.round(cy-R_IN+4);
+  const cv=document.getElementById('gcv');
+  cv.style.width=gD+'px';cv.style.height=gD+'px';cv.style.left=gL+'px';cv.style.top=gT+'px';
+}
+
+function hlW(gk){
+  hlGk=gk;
+  document.querySelectorAll('#wsvg path[data-gk]').forEach(p=>{
+    p.setAttribute('opacity',p.getAttribute('data-gk')===gk?'1':'0.82');
+  });
+}
+function clickGrp(gk){
+  curGrpIdx=GKS.indexOf(gk);
+  renderLP(gk);hlW(gk);
+}
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  GLOBE 3D — Terre réaliste + labels pays + pin stade  ║
+// ╚═══════════════════════════════════════════════════════╝
+let r3, s3, cam3, gg3, earthMesh, cloudsMesh;
+let drag3=false, px3=0, py3=0, arot=true;
+let zf={y:0,x:0}, zt={y:0,x:0}, zp=0, za=false;
+let labelSprites=[];     // sprites des noms de pays
+let stadiumPin=null;     // pin du stade sélectionné
+let stadiumPulse=null;   // anneau pulsant
+let pulseTime=0;
+
+function lerp(a,b,t){return a+(b-a)*t;}
+function ll3(lat, lon, r=1){
+  const phi = (90 - lat) * Math.PI / 180;
+  const theta = (lon + 180) * Math.PI / 180;
+  return new THREE.Vector3(
+    -r * Math.sin(phi) * Math.cos(theta),
+     r * Math.cos(phi),
+     r * Math.sin(phi) * Math.sin(theta)
+  );
+}
+
+// ═══ Création d'un label texte (sprite) ═══
+function makeLabel(text, color='#ffffff', size=64, bold=true){
+  const cv = document.createElement('canvas');
+  const ctx = cv.getContext('2d');
+  ctx.font = `${bold?'700':'400'} ${size}px Barlow Condensed, Arial`;
+  const w = Math.ceil(ctx.measureText(text).width) + 24;
+  const h = size + 20;
+  cv.width = w; cv.height = h;
+  
+  // re-set font (canvas reset après resize)
+  ctx.font = `${bold?'700':'400'} ${size}px Barlow Condensed, Arial`;
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'center';
+  
+  // Contour noir épais (lisibilité sur terre)
+  ctx.strokeStyle = 'rgba(0,0,0,0.95)';
+  ctx.lineWidth = 6;
+  ctx.lineJoin = 'round';
+  ctx.strokeText(text, w/2, h/2);
+  
+  // Texte
+  ctx.fillStyle = color;
+  ctx.fillText(text, w/2, h/2);
+  
+  const tex = new THREE.CanvasTexture(cv);
+  tex.needsUpdate = true;
+  const mat = new THREE.SpriteMaterial({
+    map: tex,
+    transparent: true,
+    depthTest: false,
+    depthWrite: false
+  });
+  const sp = new THREE.Sprite(mat);
+  const scale = 0.0007;
+  sp.scale.set(w*scale, h*scale, 1);
+  return sp;
+}
+
+function initGlobe(){
+  const cv = document.getElementById('gcv');
+  if(!cv){ console.error('❌ Canvas #gcv introuvable'); return; }
+  if(typeof THREE === 'undefined'){ console.error('❌ THREE.js non chargé'); return; }
+  
+  let sz = cv.offsetWidth;
+  if(sz < 50){
+    sz = Math.min(window.innerHeight*0.5, 500);
+    cv.style.width = sz+'px';
+    cv.style.height = sz+'px';
+  }
+  cv.width = sz;
+  cv.height = sz;
+  
+  r3 = new THREE.WebGLRenderer({canvas:cv, antialias:true, alpha:true});
+  r3.setSize(sz, sz);
+  r3.setPixelRatio(window.devicePixelRatio || 1);
+  r3.setClearColor(0x000000, 0);
+  
+  s3 = new THREE.Scene();
+  cam3 = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  cam3.position.set(0, 0, 2.8);
+  
+  s3.add(new THREE.AmbientLight(0xffffff, 0.6));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.3);
+  sun.position.set(5, 3, 5);
+  s3.add(sun);
+  const fill = new THREE.DirectionalLight(0x4477aa, 0.35);
+  fill.position.set(-5, -2, -3);
+  s3.add(fill);
+  
+  gg3 = new THREE.Group();
+  s3.add(gg3);
+  
+  // ═══ TEXTURES TERRE ═══
+  const loader = new THREE.TextureLoader();
+  loader.setCrossOrigin('anonymous');
+  
+  const URL_DAY    = 'https://unpkg.com/three-globe@2.31.0/example/img/earth-blue-marble.jpg';
+  const URL_BUMP   = 'https://unpkg.com/three-globe@2.31.0/example/img/earth-topology.png';
+  const URL_SPEC   = 'https://unpkg.com/three-globe@2.31.0/example/img/earth-water.png';
+  
+  const earthGeo = new THREE.SphereGeometry(1, 96, 96);
+  const earthMat = new THREE.MeshPhongMaterial({color: 0x224477, shininess: 25});
+  earthMesh = new THREE.Mesh(earthGeo, earthMat);
+  gg3.add(earthMesh);
+  
+  loader.load(URL_DAY, (tex) => {
+    earthMat.map = tex;
+    earthMat.color.set(0xffffff);
+    earthMat.needsUpdate = true;
+    console.log('✅ Texture Terre chargée');
+  });
+  loader.load(URL_BUMP, (tex) => {
+    earthMat.bumpMap = tex; earthMat.bumpScale = 0.025; earthMat.needsUpdate = true;
+  });
+  loader.load(URL_SPEC, (tex) => {
+    earthMat.specularMap = tex;
+    earthMat.specular = new THREE.Color(0x333344);
+    earthMat.needsUpdate = true;
+  });
+  
+  // Atmosphère
+  const atmoMat = new THREE.ShaderMaterial({
+    vertexShader: `varying vec3 vNormal;
+      void main(){ vNormal = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+    fragmentShader: `varying vec3 vNormal;
+      void main(){ float i = pow(0.65 - dot(vNormal, vec3(0,0,1.0)), 2.5);
+        gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0) * i; }`,
+    blending: THREE.AdditiveBlending, side: THREE.BackSide, transparent: true
+  });
+  gg3.add(new THREE.Mesh(new THREE.SphereGeometry(1.08, 64, 64), atmoMat));
+  
+  // ═══ PINS + LABELS PAYS (équipes des groupes) ═══
+  if(typeof GRP !== 'undefined'){
+    const pinG = new THREE.SphereGeometry(0.016, 14, 14);
+    Object.keys(GRP).forEach(gk => {
+      GRP[gk].t.forEach(team => {
+        if(team.la !== undefined && team.lo !== undefined){
+          // Pin coloré
+          const pin = new THREE.Mesh(pinG, new THREE.MeshBasicMaterial({color:GRP[gk].c}));
+          pin.position.copy(ll3(team.la, team.lo, 1.018));
+          pin.userData.gk = gk;
+          gg3.add(pin);
+          
+          // Halo
+          const halo = new THREE.Mesh(
+            new THREE.SphereGeometry(0.028, 12, 12),
+            new THREE.MeshBasicMaterial({color:GRP[gk].c, transparent:true, opacity:0.25})
+          );
+          halo.position.copy(pin.position);
+          gg3.add(halo);
+          
+          // ═ Label nom du pays ═
+          const label = makeLabel(team.n.toUpperCase(), '#FFD700', 56, true);
+          label.position.copy(ll3(team.la, team.lo, 1.075));
+          label.userData.la = team.la;
+          label.userData.lo = team.lo;
+          label.userData.isLabel = true;
+          gg3.add(label);
+          labelSprites.push(label);
+        }
+      });
+    });
+  }
+  
+  // ═══ PINS PAYS HÔTES (USA, Canada, Mexique) ═══
+  const hosts = [
+    {n:'USA', la:39.5, lo:-98.5, color:'#3498db'},
+    {n:'CANADA', la:56.1, lo:-106.3, color:'#e74c3c'},
+    {n:'MEXIQUE', la:23.6, lo:-102.5, color:'#27ae60'}
+  ];
+  hosts.forEach(h => {
+    const label = makeLabel('🏟 '+h.n, h.color, 64, true);
+    label.position.copy(ll3(h.la, h.lo, 1.09));
+    label.userData.la = h.la;
+    label.userData.lo = h.lo;
+    label.userData.isLabel = true;
+    gg3.add(label);
+    labelSprites.push(label);
+  });
+  
+  // Inclinaison axe
+  gg3.rotation.z = 23.5 * Math.PI / 180;
+  gg3.rotation.y = Math.PI * 0.2;
+  
+  // ═══ INTERACTIONS ═══
+  cv.addEventListener('mousedown', e => {
+    drag3 = true; px3 = e.clientX; py3 = e.clientY; arot = false;
+  });
+  window.addEventListener('mousemove', e => {
+    if(!drag3) return;
+    const dx = e.clientX-px3, dy = e.clientY-py3;
+    gg3.rotation.y += dx*0.005;
+    gg3.rotation.x += dy*0.005;
+    gg3.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, gg3.rotation.x));
+    px3 = e.clientX; py3 = e.clientY;
+  });
+  window.addEventListener('mouseup', () => { setTimeout(()=>{drag3=false;},60); });
+  
+  cv.addEventListener('wheel', e => {
+    e.preventDefault();
+    cam3.position.z += e.deltaY * 0.002;
+    cam3.position.z = Math.max(1.5, Math.min(5, cam3.position.z));
+  }, {passive:false});
+  
+  cv.addEventListener('touchstart', e => {
+    if(e.touches.length){drag3=true;px3=e.touches[0].clientX;py3=e.touches[0].clientY;arot=false;}
+  }, {passive:true});
+  cv.addEventListener('touchmove', e => {
+    if(!drag3||!e.touches.length)return;
+    const dx=e.touches[0].clientX-px3,dy=e.touches[0].clientY-py3;
+    gg3.rotation.y+=dx*0.005; gg3.rotation.x+=dy*0.005;
+    px3=e.touches[0].clientX; py3=e.touches[0].clientY;
+  }, {passive:true});
+  cv.addEventListener('touchend', () => { drag3 = false; });
+  
+  cv.addEventListener('click', gClick);
+  
+  animate3();
+  console.log('✅ Globe initialisé avec labels pays');
+}
+
+// ═══ Masquer labels du côté arrière du globe ═══
+function updateLabelVisibility(){
+  if(!cam3 || !gg3) return;
+  const camDir = new THREE.Vector3();
+  cam3.getWorldDirection(camDir);
+  
+  labelSprites.forEach(sp => {
+    const wp = new THREE.Vector3();
+    sp.getWorldPosition(wp);
+    const toCam = wp.clone().normalize();
+    // Si le label est face caméra : visible. Sinon : invisible.
+    const dot = toCam.dot(cam3.position.clone().normalize());
+    const op = Math.max(0, Math.min(1, (dot - 0.15) * 2.5));
+    sp.material.opacity = op;
+    sp.visible = op > 0.05;
+  });
+}
+
+function animate3(){
+  requestAnimationFrame(animate3);
+  if(!r3 || !s3 || !cam3 || !gg3) return;
+  
+  if(arot && !drag3 && !za){ gg3.rotation.y += 0.0010; }
+  if(cloudsMesh && !drag3){ cloudsMesh.rotation.y += 0.0004; }
+  
+  if(za){
+  zp += 0.025;
+  if(zp >= 1){ zp = 1; za = false; }
+  const e = zp < 0.5 ? 2*zp*zp : 1 - Math.pow(-2*zp+2, 2)/2; // easeInOutQuad
+  
+  gg3.rotation.y = zf.y + (zt.y - zf.y) * e;
+  gg3.rotation.x = zf.x + (zt.x - zf.x) * e;
+  gg3.rotation.z = zf.z + (zt.z - zf.z) * e;
+  
+  if(typeof zoomCamFrom === 'number'){
+    cam3.position.z = zoomCamFrom + (zoomCamTo - zoomCamFrom) * e;
+  }
+}
+  
+  // Pulse pin stade
+  if(stadiumPulse){
+    pulseTime += 0.05;
+    const s = 1 + Math.sin(pulseTime)*0.4;
+    stadiumPulse.scale.set(s, s, s);
+    stadiumPulse.material.opacity = 0.5 - Math.sin(pulseTime)*0.25;
+  }
+  
+  updateLabelVisibility();
+  r3.render(s3, cam3);
+}
+
+// ═══ ZOOM vers stade + mini-fiche ═══
+function zoomTo(lat, lon, stadium, city){
+  if(!gg3) return;
+  
+  // Cible: amener le point (lat, lon) face à la caméra (axe +Z)
+  // Compte tenu de l'inclinaison Z de 23.5°, on annule cette rotation visuellement
+  // en utilisant un parent ou en compensant. Ici on calcule directement:
+  
+  zf = {y: gg3.rotation.y, x: gg3.rotation.x, z: gg3.rotation.z};
+  
+  // Pour qu'un point (lat, lon) soit face à la caméra :
+  //   rotation.y = -lon en radians - PI/2  (car lon=0 => méridien Greenwich vers +X par défaut)
+  //   rotation.x =  lat en radians
+  //   rotation.z = 0 (on enlève l'inclinaison pendant le focus)
+  
+  zt = {
+    y: -(lon * Math.PI/180) - Math.PI/2,
+    x:  (lat * Math.PI/180),
+    z:  0
+  };
+  
+  zp = 0; za = true; arot = false;
+  
+  // Zoom caméra plus près
+  zoomCamFrom = cam3.position.z;
+  zoomCamTo = 1.8;
+  
+  // ... reste inchangé (pin, pulse, card)
+  if(stadiumPin){ gg3.remove(stadiumPin); stadiumPin = null; }
+  if(stadiumPulse){ gg3.remove(stadiumPulse); stadiumPulse = null; }
+  
+  const pos = ll3(lat, lon, 1.02);
+  const pinGeo = new THREE.ConeGeometry(0.018, 0.05, 16);
+  const pinMat = new THREE.MeshBasicMaterial({color:0xFFD700});
+  stadiumPin = new THREE.Mesh(pinGeo, pinMat);
+  stadiumPin.position.copy(ll3(lat, lon, 1.04));
+  stadiumPin.lookAt(0,0,0);
+  stadiumPin.rotateX(Math.PI/2);
+  gg3.add(stadiumPin);
+  
+  const pulseGeo = new THREE.RingGeometry(0.025, 0.045, 32);
+  const pulseMat = new THREE.MeshBasicMaterial({
+    color:0xFFD700, transparent:true, opacity:0.5,
+    side:THREE.DoubleSide, depthWrite:false
+  });
+  stadiumPulse = new THREE.Mesh(pulseGeo, pulseMat);
+  stadiumPulse.position.copy(ll3(lat, lon, 1.022));
+  stadiumPulse.lookAt(pos.clone().multiplyScalar(2));
+  gg3.add(stadiumPulse);
+  pulseTime = 0;
+  
+  showStadiumCard(stadium, city, lat, lon);
+  const cv = document.getElementById('gcv');
+  if(cv) cv.classList.add('zr');
+}
+
+
+// ═══ MINI-FICHE STADE (HTML overlay) ═══
+function showStadiumCard(stadium, city, lat, lon){
+  let card = document.getElementById('stad-card');
+  if(!card){
+    card = document.createElement('div');
+    card.id = 'stad-card';
+    document.getElementById('ww').appendChild(card);
+  }
+  
+  // Trouver les infos du stade
+  const vd = (typeof VENUES !== 'undefined') ? VENUES[stadium] : null;
+  const country = vd ? vd.country : '';
+  const cap = vd ? (vd.cap || vd.capacity || '') : '';
+  const flag = vd ? (vd.flag || '') : '🏟';
+  
+  card.innerHTML = `
+    <div class="sc-close" onclick="hideStadiumCard()">✕</div>
+    <div class="sc-img">
+      <div class="sc-emoji">${flag}</div>
+      <div class="sc-stadicon">🏟</div>
+    </div>
+    <div class="sc-body">
+      <div class="sc-name">${stadium}</div>
+      <div class="sc-city">📍 ${city}${country?' · '+country:''}</div>
+      ${cap?`<div class="sc-cap">👥 ${cap.toLocaleString?cap.toLocaleString():cap} places</div>`:''}
+      <div class="sc-coord">🌐 ${lat.toFixed(2)}°, ${lon.toFixed(2)}°</div>
+    </div>`;
+  
+  card.classList.add('on');
+}
+
+function hideStadiumCard(){
+  const card = document.getElementById('stad-card');
+  if(card) card.classList.remove('on');
+  if(stadiumPin){ gg3.remove(stadiumPin); stadiumPin=null; }
+  if(stadiumPulse){ gg3.remove(stadiumPulse); stadiumPulse=null; }
+  arot = true;
+  const cv = document.getElementById('gcv');
+  if(cv) cv.classList.remove('zr');
+}
+
+function gClick(e){
+  if(drag3 || !gg3 || !cam3) return;
+  const cv = document.getElementById('gcv');
+  const rc = cv.getBoundingClientRect();
+  const mouse = new THREE.Vector2(
+    ((e.clientX-rc.left)/rc.width)*2-1,
+    -((e.clientY-rc.top)/rc.height)*2+1
+  );
+  const ray = new THREE.Raycaster();
+  ray.setFromCamera(mouse, cam3);
+  const hits = ray.intersectObjects(gg3.children);
+  for(const h of hits){
+    if(h.object.userData.gk){
+      clickGrp(h.object.userData.gk);
+      return;
+    }
+  }
+}
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  CALENDRIER EN DIRECT — buildRCal()                    ║
+// ╚═══════════════════════════════════════════════════════╝
+function buildRCal() {
+  const pills = document.getElementById('rcal-pills');
+  const body  = document.getElementById('rcal-b');
+  if (!pills || !body) return;
+
+  const curPhase = getCurrentPhase();
+  // Si pas d'override manuel, on positionne sur la phase courante
+  if (rcalPhaseOverride === null) rcalP = curPhase.phIdx;
+
+  // Construction des pills
+  const phLabels = ['Groupes','1/16ᵉ','1/8ᵉ','Quarts','Demies','Finale'];
+  pills.innerHTML = phLabels.map((l, i) =>
+    `<div class="pill${rcalP === i ? ' on' : ''}" onclick="setRCalPhase(${i})">${l}</div>`
+  ).join('');
+
+  // Affichage selon la phase sélectionnée
+  if (rcalP === 0) {
+    buildRCalGroupes(body);
+  } else {
+    const phaseKeys = ['groupes','seizieme','huitieme','quarts','demies','finale'];
+    const key = phaseKeys[rcalP];
+    buildRCalKO(body, key, phLabels[rcalP]);
+  }
+}
+
+function setRCalPhase(idx) {
+  rcalP = idx;
+  rcalPhaseOverride = idx; // L'utilisateur a choisi manuellement
+  buildRCal();
+}
+
+// Affichage des matchs de groupes (logique originale conservée)
+function buildRCalGroupes(body) {
+  const byDay = {};
+  M.forEach(m => {
+    if (!byDay[m.d]) byDay[m.d] = [];
+    byDay[m.d].push(m);
+  });
+  const days = Object.keys(byDay).sort();
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  // Trouver le jour le plus proche d'aujourd'hui
+  let focusDay = days.find(d => d >= todayStr) || days[days.length - 1];
+  const focusIdx = days.indexOf(focusDay);
+  // Fenêtre de 3 jours autour du focus
+  const window3 = days.slice(Math.max(0, focusIdx - 1), focusIdx + 3);
+
+  let h = '';
+  window3.forEach(d => {
+    const ms = byDay[d];
+    const isToday = d === todayStr;
+    h += `<div class="cal-dh${isToday ? ' today' : ''}">${fmtD(d)}${isToday ? ' (Aujourd\'hui)' : ''}</div>`;
+    ms.forEach(m => {
+      const teamData = GRP[m.g] ? GRP[m.g].t : [];
+      const f1 = teamData.find(t => t.n === m.t1) || { f: getFlag(m.t1) };
+      const f2 = teamData.find(t => t.n === m.t2) || { f: getFlag(m.t2) };
+      const sc = SC[m.id];
+      const gc = GRP[m.g] ? GRP[m.g].c : '#FFD700';
+      const vd = getVD(m.v);
+      const sel = selMatch && selMatch.id === m.id;
+           h += `<div class="cmc${sel ? ' sel' : ''}" data-mid="${m.id}" onclick="clickM('${m.id}'); centerGlobeOnStadium(${vd?.la || 'null'}, ${vd?.lo || 'null'})">
+        <div class="cmc-t">
+          <span style="color:${gc};font-weight:700">GRP ${m.g}</span>
+          <span>${m.h}</span>
+        </div>
+        <div class="cmc-r">
+          <div class="ct"><span class="cf">${f1.f}</span> <span style="margin-left:6px;font-size:.9rem">${m.t1}</span></div>
+          <div class="${sc ? 'cscore' : 'cscore vs'}">${sc ? sc.s1 + '—' + sc.s2 : T('vs')}</div>
+          <div class="ct r"><span style="margin-right:6px;font-size:.9rem">${m.t2}</span> <span class="cf">${f2.f}</span></div>
+        </div>
+        ${vd ? `<div class="cmc-v">📍 ${vd.name}, ${vd.city}</div>` : ''}
+      </div>`;
+    });
+  });
+  body.innerHTML = h || '<div class="cal-empty">Aucun match à afficher</div>';
+}
+
+// Affichage des matchs knockout depuis le Sheet
+function buildRCalKO(body, sheetKey, phaseLabel) {
+  const matches = KO_DATA[sheetKey] || [];
+  if (!matches.length) {
+    body.innerHTML = `<div class="cal-empty" style="text-align:center;padding:20px;color:var(--muted)">
+      <div style="font-size:2rem;margin-bottom:8px">⏳</div>
+      <div style="font-weight:700;color:var(--gold)">${phaseLabel}</div>
+      <div style="margin-top:6px;font-size:.85rem">Les matchs seront disponibles<br>dès la publication du calendrier</div>
+    </div>`;
+    return;
+  }
+
+  // Grouper par date
+  const byDay = {};
+  matches.forEach(m => {
+    if (!byDay[m.d]) byDay[m.d] = [];
+    byDay[m.d].push(m);
+  });
+  const days = Object.keys(byDay).sort();
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  let h = '';
+  days.forEach(d => {
+    const ms = byDay[d];
+    const isToday = d === todayStr;
+    h += `<div class="cal-dh${isToday ? ' today' : ''}">${fmtD(d)}${isToday ? ' (Aujourd\'hui)' : ''}</div>`;
+    ms.forEach(m => {
+      const hasScore = m.s1 !== null && m.s2 !== null;
+      const gpsLink = m.gps
+        ? `<a href="${m.gps}" target="_blank" style="color:var(--gold);text-decoration:none">📍 ${m.stade}${m.ville ? ', ' + m.ville : ''}</a>`
+        : (m.stade ? `📍 ${m.stade}${m.ville ? ', ' + m.ville : ''}` : '');
+      h += `<div class="cmc ko-match" data-mid="${m.id}" onclick="clickKOMatch('${m.id}', ${m.lat}, ${m.lon})">
+        <div class="cmc-t">
+          <span style="color:var(--gold);font-weight:700">${phaseLabel}</span>
+          <span>${m.h || ''}</span>
+        </div>
+        <div class="cmc-r">
+          <div class="ct">
+            <span class="cf">${m.f1}</span>
+            <span style="margin-left:6px;font-size:.9rem">${m.t1}</span>
+          </div>
+          <div class="${hasScore ? 'cscore' : 'cscore vs'}">
+            ${hasScore ? m.s1 + '—' + m.s2 : T('vs')}
+          </div>
+          <div class="ct r">
+            <span style="margin-right:6px;font-size:.9rem">${m.t2}</span>
+            <span class="cf">${m.f2}</span>
+          </div>
+        </div>
+        ${gpsLink ? `<div class="cmc-v">${gpsLink}</div>` : ''}
+      </div>`;
+    });
+  });
+  body.innerHTML = h;
+}
+
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  GROUPS VIEW                                           ║
+// ╚═══════════════════════════════════════════════════════╝
+function buildGroupsGrid(){
+  const g=document.getElementById('gg');g.innerHTML='';
+  GKS.forEach(gk=>{
+    const gd=GRP[gk],st=standings(gk);
+    const pl=M.filter(m=>m.g===gk&&SC[m.id]).length,tot=M.filter(m=>m.g===gk).length;
+    const pct=Math.round(pl/tot*100);
+    const card=document.createElement('div');card.className='gc';
+    card.onclick=()=>{curGrpIdx=GKS.indexOf(gk);clickGrp(gk);switchTab('vw');};
+    card.innerHTML=`<div class="gc-hd" style="border-left:4px solid ${gd.c}">
+      <div class="gc-lt" style="color:${gd.c}">${gk}</div>
+      <div class="gc-inf">
+        <div class="gc-inf-t">GROUPE ${gk} · ${pl}/${tot} ${T('played')}</div>
+        <div class="gc-bar"><div class="gc-bar-f" style="width:${pct}%;background:${gd.c}"></div></div>
+      </div>
+    </div>
+    <div class="gc-teams">${st.map((t,i)=>{
+      const q=i<2;
+      return`<div class="gc-t${q?' win':''}" onclick="event.stopPropagation();showTeamModal('${t.n}','${gk}')">
+        <span class="gc-rk${q?' q':''}">${i+1}</span>
+        <span class="gc-fl">${t.f}</span>
+        <span class="gc-nm">${t.n}</span>
+        <div class="gc-st">
+          <span><span class="gc-sv">${t.w}</span>V</span>
+          <span><span class="gc-sv">${t.d}</span>N</span>
+          <span><span class="gc-sv">${t.l}</span>D</span>
+        </div>
+        <span class="gc-pts">${t.pts}</span>
+      </div>`;
+    }).join('')}</div>`;
+    g.appendChild(card);
+  });
+}
+
+function showTeamModal(tn,gk){
+  const gd=GRP[gk];const team=gd.t.find(t=>t.n===tn);if(!team)return;
+  const tms=M.filter(m=>m.t1===tn||m.t2===tn);
+  let mh=tms.map(m=>{
+    const sc=SC[m.id];
+    const isHome=m.t1===tn;
+    const opp=isHome?m.t2:m.t1;
+    const oppT=(GRP[m.g]?.t||[]).find(t=>t.n===opp)||{f:'🏳'};
+    const vd=getVD(m.v);
+    let res='⏳';
+    if(sc){const myG=isHome?sc.s1:sc.s2,oppG=isHome?sc.s2:sc.s1;res=myG>oppG?'✅':myG<oppG?'❌':'🟡';}
+    return`<div class="tmm">
+      <div class="tmm-m"><span>📅 ${fmtD(m.d)} · ${m.h}</span><span>${res}</span></div>
+      <div class="tmm-v">📍 ${m.v.split(',')[0]}${vd?', '+vd.city:''}</div>
+      <div class="tmm-t">
+        <div class="tmt l"><span class="tmtf">${team.f}</span><span class="tmtn">${m.t1}</span></div>
+        <div class="tmsc2">${sc?sc.s1+' — '+sc.s2:'– '+T('vs')+' –'}</div>
+        <div class="tmt r"><span class="tmtf">${oppT.f}</span><span class="tmtn">${m.t2}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('mbox').innerHTML=`
+    <div class="tmh">
+      <span class="tmfl">${team.f}</span>
+      <div><div class="tmnm">${team.n}</div><div class="tmgr" style="color:${gd.c}">GROUPE ${gk}</div></div>
+      <button class="tmx" onclick="closeModal()">✕</button>
+    </div>
+    <div class="tmsc">TOUS LES MATCHS</div>
+    ${mh}`;
+  document.getElementById('mbg').classList.add('on');
+}
+function closeModal(){document.getElementById('mbg').classList.remove('on');}
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  CALENDAR VIEW                                         ║
+// ╚═══════════════════════════════════════════════════════╝
+function buildCalendar(){
+  const bar=document.getElementById('cp-bar');bar.innerHTML='';
+  PH.forEach((ph,i)=>{
+    const el=document.createElement('div');el.className='cp'+(i===calP?' on':'');
+    el.textContent=ph.l;el.onclick=()=>{calP=i;buildCalendar();};bar.appendChild(el);
+  });
+  const body=document.getElementById('cal-b');
+  if(calP!==0){
+    body.innerHTML=`<div style="padding:40px;text-align:center;color:var(--muted)">
+      <div style="font-size:2.5rem;margin-bottom:12px">⏳</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:3px;color:var(--text)">${PH[calP].l}</div>
+      <div style="font-size:.82rem;margin-top:8px;color:var(--gold)">${T('avail')}</div>
+    </div>`;return;
+  }
+  const byD={};M.forEach(m=>{if(!byD[m.d])byD[m.d]=[];byD[m.d].push(m);});
+  body.innerHTML='';
+  Object.entries(byD).sort().forEach(([date,ms])=>{
+    const dd=document.createElement('div');dd.className='cal-day';
+    dd.innerHTML=`<div class="cal-dh"><div class="cal-dd">📅 ${fmtD(date)}</div><div class="cal-dl"></div><div class="cal-dc">${ms.length} ${ms.length>1?T('matches'):T('match')}</div></div>`;
+    const cg=document.createElement('div');cg.className='cal-g';
+    ms.forEach(m=>{
+      const gd=GRP[m.g],sc=SC[m.id],vd=getVD(m.v);
+      const t1=gd.t.find(t=>t.n===m.t1)||{f:'🏳'},t2=gd.t.find(t=>t.n===m.t2)||{f:'🏳'};
+      const sel=selMatch&&selMatch.id===m.id;
+      const c=document.createElement('div');c.className='cal-c'+(sel?' sel':'');c.dataset.mid=m.id;
+      c.innerHTML=`<div class="cal-stripe" style="background:${gd.c}"></div>
+        <div class="cal-ct">
+          <div class="cal-gb" style="color:${gd.c};background:${gd.c}22">GRP ${m.g}</div>
+          <div class="cal-ti">🕐 ${m.h}</div>
+        </div>
+        <div class="cal-tr">
+          <div class="calt"><span class="caltf">${t1.f}</span><span>${m.t1}</span></div>
+          <div class="${sc?'cal-sc':'cal-sc vs'}">${sc?sc.s1+' – '+sc.s2:T('vs')}</div>
+          <div class="calt r"><span>${m.t2}</span><span class="caltf">${t2.f}</span></div>
+        </div>
+        <div class="cal-vn">📍 ${m.v.split(',')[0]}${vd?', '+vd.city:''}</div>`;
+      c.onclick=()=>clickM(m.id);
+      cg.appendChild(c);
+    });
+    dd.appendChild(cg);body.appendChild(dd);
+  });
+}
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  PHASES VIEW                                           ║
+// ╚═══════════════════════════════════════════════════════╝
+function buildBracket(){
+  const phs=[
+    {i:'🏟',n:'Phase Groupes',  d:'12 groupes × 4 · 72 matchs\n11→26 juin',     c:'#1abc9c'},
+    {i:'⚔️',n:'1/16ᵉ Finale', d:'32 équipes · 16 matchs\n28 juin→3 juillet',  c:'#2ecc71'},
+    {i:'🔥',n:'1/8ᵉ Finale', d:'16 équipes · 8 matchs\n5→8 juillet',         c:'#f39c12'},
+    {i:'💥',n:'Quarts Finale', d:'8 équipes · 4 matchs\n10→11 juillet',        c:'#e67e22'},
+    {i:'🌟',n:'Demi-finales',  d:'4 équipes · 2 matchs\n14→15 juillet',        c:'#e74c3c'},
+    {i:'🥉',n:'Petite Finale', d:'3ᵉ place\n18 juillet',                        c:'#c0392b'},
+    {i:'🏆',n:'FINALE',        d:'MetLife Stadium\nNew York · 19 juillet 2026', c:'#FFD700'},
+  ];
+  let tl=`<div class="ph-tl">`;
+  phs.forEach((ph,i)=>{
+    tl+=`<div class="ph-blk">
+      <div class="ph-ico" style="background:${ph.c}22;border:2px solid ${ph.c}55">
+        <span style="filter:drop-shadow(0 0 5px ${ph.c}88)">${ph.i}</span>
+      </div>
+      <div class="ph-nm" style="color:${ph.c}">${ph.n}</div>
+      <div class="ph-dt">${ph.d}</div>
+    </div>`;
+    if(i<phs.length-1)tl+=`<div class="ph-arr">→</div>`;
+  });
+  tl+=`</div>`;
+  document.getElementById('ph-tl').innerHTML=tl;
+  const pfData=[
+    {i:'⚽',t:'48 Équipes',       d:'Format record\nde participation'},
+    {i:'🗺️',t:'3 Pays hôtes',   d:'USA · Canada\nMexique'},
+    {i:'🏟',t:'16 Stades',       d:'Répartis sur\n3 pays'},
+    {i:'📅',t:'104 Matchs',      d:'11 juin au\n19 juillet 2026'},
+    {i:'🎯',t:'32 Qualifiés',    d:'Pour les phases\néliminatoires'},
+    {i:'🏆',t:'Finale NY',       d:'MetLife Stadium\n19 juillet'},
+  ];
+  document.getElementById('ph-cg').innerHTML=pfData.map(p=>`
+    <div class="ph-card">
+      <div class="ph-card-ico">${p.i}</div>
+      <div class="ph-card-t" style="color:var(--gold)">${p.t}</div>
+      <div class="ph-card-d">${p.d}</div>
+    </div>`).join('');
+}
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  KNOCKOUT — Horizontal bracket tree                    ║
+// ╚═══════════════════════════════════════════════════════╝
+
+function buildKO(){
+  const gold='#FFD700';
+  const NW=200,NH=75,CGAP=30,RGAP=16;
+  const ROUNDS=[
+    {label:'GROUPES',  n:12, type:'group'},
+    {label:'1/16ᵉ',   n:12, type:'match'},
+    {label:'1/8ᵉ',   n:8,  type:'match'},
+    {label:'QUARTS',  n:4,  type:'match'},
+    {label:'DEMIES',  n:2,  type:'match'},
+    {label:'🏆 FINALE',n:1, type:'final'},
+  ];
+  const RH=NH+RGAP;
+  const MAXROWS=12;
+  const LPAD=110;
+  const CW=NW+CGAP;
+  const SVG_W=LPAD+ROUNDS.length*CW+20;
+  const SVG_H=MAXROWS*RH+60;
+  let s='';
+
+  // Column headers
+  ROUNDS.forEach((r,ci)=>{
+    const cx=LPAD+ci*CW+NW/2;
+    s+=`<rect x="${LPAD+ci*CW}" y="8" width="${NW}" height="38" rx="8"
+      fill="rgba(255,215,0,0.08)" stroke="rgba(255,215,0,0.25)" stroke-width="1"/>
+    <text x="${cx}" y="27" text-anchor="middle" dominant-baseline="middle"
+      font-family="Bebas Neue,sans-serif" font-size="16" letter-spacing="3" fill="${gold}">${r.label}</text>`;
+  });
+
+  const TOP=36;
+  function yr(row){return TOP+row*RH;}
+  function xc(col){return LPAD+col*CW;}
+
+  // Row labels
+  ROUNDS.forEach((_,ci)=>{
+    const x1=LPAD+ci*CW;
+    if(ci<ROUNDS.length-1){
+      s+=`<line x1="${x1+NW}" y1="${TOP}" x2="${x1+NW}" y2="${SVG_H-10}"
+        stroke="rgba(255,255,255,0.04)" stroke-width=".5" stroke-dasharray="3 4"/>`;
+    }
+  });
+
+  function mbox(cx,y,t1,t2,w){
+    w=w||NW;const c1=t1?.c||'#334',c2=t2?.c||'#334';
+    const n1=(t1?.n||'?').length>14?(t1?.n||'?').slice(0,13)+'…':(t1?.n||'?');
+    const n2=(t2?.n||'?').length>14?(t2?.n||'?').slice(0,13)+'…':(t2?.n||'?');
+    return`<rect x="${cx}" y="${y}" width="${w}" height="${NH}" rx="10"
+      fill="rgba(7,17,42,0.92)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <rect x="${cx}" y="${y}" width="${w}" height="${NH/2}" rx="9" fill="${c1}" fill-opacity=".15"/>
+    <rect x="${cx}" y="${y+NH/2}" width="${w}" height="${NH/2}" rx="9" fill="${c2}" fill-opacity=".15"/>
+    <text x="${cx+8}" y="${y+NH/4}" dominant-baseline="middle"
+      font-family="Barlow Condensed,sans-serif" font-size="16" font-weight="700" fill="#dde6f0">${t1?.f||'❓'} ${n1}</text>
+    <text x="${cx+8}" y="${y+NH*3/4}" dominant-baseline="middle"
+      font-family="Barlow Condensed,sans-serif" font-size="16" font-weight="700" fill="#dde6f0">${t2?.f||'❓'} ${n2}</text>`;
+  }
+  
+  function conn(x1,y1,x2,y2,c){
+    c=c||'rgba(255,255,255,0.1)';
+    const mx=(x1+x2)/2;
+    return`<path d="M${x1} ${y1}C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" fill="none" stroke="${c}" stroke-width=".8" opacity=".6"/>`;
+  }
+
+  // ═══════════════════════════════════════════
+  // Col 0: Groups
+  // ═══════════════════════════════════════════
+  const c0x=xc(0);
+  const c0ys=GKS.map((_,i)=>yr(i));
+  GKS.forEach((gk,i)=>{
+    const gd=GRP[gk],st2=standings(gk),y=c0ys[i];
+    s+=`<rect x="${c0x}" y="${y}" width="${NW}" height="${NH}" rx="7"
+      fill="${gd.c}" fill-opacity=".11" stroke="${gd.c}" stroke-opacity=".3" stroke-width=".8"
+      style="cursor:pointer" onclick="clickGrp('${gk}');switchTab('vw')"/>
+    <text x="${c0x+8}" y="${y+NH/2-12}" dominant-baseline="middle"
+      font-family="Bebas Neue,sans-serif" font-size="18" letter-spacing="2" fill="${gd.c}">GRP ${gk}</text>
+    <text x="${c0x+8}" y="${y+NH/2+14}" dominant-baseline="middle"
+      font-family="Barlow Condensed,sans-serif" font-size="16" fill="#dde6f0" opacity=".75">
+      ${st2.slice(0,3).map(t=>t.f).join(' ')}</text>`;
+  });
+
+  // ═══════════════════════════════════════════
+  // Col 1: 1/16ᵉ (12 matchups) — Depuis KO_DATA
+  // ═══════════════════════════════════════════
+  const ko16=KO_DATA['seizieme'] || [];
+  const c1x=xc(1);
+  const c1ys=Array.from({length:12},(_,i)=>yr(i));
+  
+  // Matchups par défaut (groupes)
+  const r32P=[['A',0,'B',1],['C',0,'D',1],['E',0,'F',1],['G',0,'H',1],['I',0,'J',1],['K',0,'L',1],
+              ['B',0,'A',1],['D',0,'C',1],['F',0,'E',1],['H',0,'G',1],['J',0,'I',1],['L',0,'K',1]];
+  
+  c1ys.forEach((y,i)=>{
+    let t1, t2;
+    
+    if(ko16[i]){
+      // ✅ Données depuis Google Sheet
+      t1 = {
+        n: ko16[i].t1,
+        f: getFlag(ko16[i].t1),
+        c: '#FFD700'
+      };
+      t2 = {
+        n: ko16[i].t2,
+        f: getFlag(ko16[i].t2),
+        c: '#FFD700'
+      };
+    } else {
+      // ⚠️ Fallback : calcul depuis les groupes
+      const [g1,p1,g2,p2] = r32P[i];
+      const st1 = standings(g1);
+      const st2_alt = standings(g2);
+      t1 = {...st1[p1], c: GRP[g1].c};
+      t2 = {...st2_alt[p2], c: GRP[g2].c};
+    }
+    
+    s+=mbox(c1x,y,t1,t2);
+    
+    // Connexions depuis les groupes
+    const [g1,p1,g2,p2] = r32P[i];
+    if(c0ys[GKS.indexOf(g1)]!==undefined){
+      s+=conn(c0x+NW,c0ys[GKS.indexOf(g1)]+NH/2,c1x,y+NH/2,GRP[g1].c+'44');
+    }
+  });
+
+  // ═══════════════════════════════════════════
+  // Col 2: 1/8ᵉ (8) — Depuis KO_DATA
+  // ═══════════════════════════════════════════
+  const ko8=KO_DATA['huitieme'] || [];
+  const c2x=xc(2);
+  const c2ys=Array.from({length:8},(_,i)=>yr(i*1.5));
+  
+  c2ys.forEach((y,i)=>{
+    let t1, t2;
+    
+    if(ko8[i]){
+      // ✅ Données depuis Google Sheet
+      t1 = {
+        n: ko8[i].t1,
+        f: getFlag(ko8[i].t1),
+        c: '#FFD700'
+      };
+      t2 = {
+        n: ko8[i].t2,
+        f: getFlag(ko8[i].t2),
+        c: '#FFD700'
+      };
+    } else {
+      // ⚠️ Fallback : depuis 1/16ᵉ
+      t1 = {n: '?', f: '❓', c: '#666'};
+      t2 = {n: '?', f: '❓', c: '#666'};
+    }
+    
+    s+=mbox(c2x,y,t1,t2);
+    
+    // Connexions depuis 1/16ᵉ
+    if(c1ys[i*2]!==undefined) s+=conn(c1x+NW,c1ys[i*2]+NH/2,c2x,y+NH/2);
+    if(c1ys[i*2+1]!==undefined) s+=conn(c1x+NW,c1ys[i*2+1]+NH/2,c2x,y+NH/2);
+  });
+
+  // ═══════════════════════════════════════════
+  // Col 3: Quarts (4) — Depuis KO_DATA
+  // ═══════════════════════════════════════════
+  const ko4=KO_DATA['quarts'] || [];
+  const c3x=xc(3);
+  const c3ys=Array.from({length:4},(_,i)=>yr(i*3));
+  
+  c3ys.forEach((y,i)=>{
+    let t1, t2;
+    
+    if(ko4[i]){
+      // ✅ Données depuis Google Sheet
+      t1 = {
+        n: ko4[i].t1,
+        f: getFlag(ko4[i].t1),
+        c: '#FFD700'
+      };
+      t2 = {
+        n: ko4[i].t2,
+        f: getFlag(ko4[i].t2),
+        c: '#FFD700'
+      };
+    } else {
+      // ⚠️ Fallback
+      t1 = {n: '?', f: '❓', c: '#666'};
+      t2 = {n: '?', f: '❓', c: '#666'};
+    }
+    
+    s+=mbox(c3x,y,t1,t2,NW+4);
+    
+    // Connexions depuis 1/8ᵉ
+    if(c2ys[i*2]!==undefined) s+=conn(c2x+NW,c2ys[i*2]+NH/2,c3x,y+NH/2,gold+'44');
+    if(c2ys[i*2+1]!==undefined) s+=conn(c2x+NW,c2ys[i*2+1]+NH/2,c3x,y+NH/2,gold+'44');
+  });
+
+  // ═══════════════════════════════════════════
+  // Col 4: Demi-finales (2) — Depuis KO_DATA
+  // ═══════════════════════════════════════════
+  const ko2=KO_DATA['demies'] || [];
+  const c4x=xc(4);
+  const c4ys=Array.from({length:2},(_,i)=>yr(i*5));
+  
+  c4ys.forEach((y,i)=>{
+    let t1, t2;
+    
+    if(ko2[i]){
+      // ✅ Données depuis Google Sheet
+      t1 = {
+        n: ko2[i].t1,
+        f: getFlag(ko2[i].t1),
+        c: '#FFD700'
+      };
+      t2 = {
+        n: ko2[i].t2,
+        f: getFlag(ko2[i].t2),
+        c: '#FFD700'
+      };
+    } else {
+      // ⚠️ Fallback
+      t1 = {n: '?', f: '❓', c: '#666'};
+      t2 = {n: '?', f: '❓', c: '#666'};
+    }
+    
+    s+=mbox(c4x,y,t1,t2,NW+6);
+    
+    // Connexions depuis quarts
+    s+=conn(c3x+NW+4,c3ys[i*2]||c3ys[0],c4x,y+NH/2,gold+'50');
+    if(c3ys[i*2+1]!==undefined) s+=conn(c3x+NW+4,c3ys[i*2+1],c4x,y+NH/2,gold+'50');
+  });
+
+  // ═══════════════════════════════════════════
+  // Col 5: Finale — Depuis KO_DATA
+  // ═══════════════════════════════════════════
+  const koFinal=KO_DATA['finale'] || [];
+  const c5x=xc(5);
+  const fY=yr(4)+RH/2;
+  
+  let t1Final, t2Final;
+  if(koFinal[0]){
+    // ✅ Données depuis Google Sheet
+    t1Final = {
+      n: koFinal[0].t1,
+      f: getFlag(koFinal[0].t1),
+      c: '#FFD700'
+    };
+    t2Final = {
+      n: koFinal[0].t2,
+      f: getFlag(koFinal[0].t2),
+      c: '#FFD700'
+    };
+  } else {
+    // ⚠️ Fallback
+    t1Final = {n: '?', f: '❓', c: '#666'};
+    t2Final = {n: '?', f: '❓', c: '#666'};
+  }
+  
+  s+=mbox(c5x,fY,t1Final,t2Final,NW+10);
+  
+  // Connexions depuis demies
+  c4ys.forEach(y=>s+=conn(c4x+NW+6,y+NH/2,c5x,fY+NH/2,gold+'58'));
+  
+  s+=`<text x="${c5x+NW/2+5}" y="${fY+NH+28}" text-anchor="middle" font-size="40">🏆</text>
+    <text x="${c5x+NW/2+5}" y="${fY+NH+62}" text-anchor="middle"
+      font-family="Bebas Neue,sans-serif" font-size="16" letter-spacing="3" fill="${gold}">19 JUILLET 2026</text>`;
+
+  document.getElementById('ko-w').innerHTML=
+    `<svg viewBox="0 0 ${SVG_W} ${SVG_H}" width="${SVG_W}" style="min-width:1400px;display:block;transform-origin:top left;">${s}</svg>`;
+}
+
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  PETITE FINALE dans TABLEAU                            ║
+// ╚═══════════════════════════════════════════════════════╝
+function buildKOPetiteFinale() {
+  const el = document.getElementById('ko-petite-body');
+  if (!el) return;
+  const matches = KO_DATA['petite_finale'] || [];
+  if (!matches.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:10px;font-size:.85rem">Disponible après les demi-finales</div>';
+    return;
+  }
+  let h = '';
+  matches.forEach(m => {
+    const hasScore = m.s1 !== null && m.s2 !== null;
+    const gpsLink = m.gps
+      ? `<a href="${m.gps}" target="_blank" style="color:var(--gold);text-decoration:none">📍 ${m.stade}${m.ville ? ', ' + m.ville : ''}</a>`
+      : (m.stade ? `📍 ${m.stade}${m.ville ? ', ' + m.ville : ''}` : '');
+        h += `<div class="cmc ko-match" style="margin-bottom:0" onclick="clickKOMatch('${m.id}', ${m.lat}, ${m.lon})">
+      <div class="cmc-t">
+        <span style="color:#c0392b;font-weight:700">3ᵉ PLACE</span>
+        <span>${fmtD(m.d)} · ${m.h || ''}</span>
+      </div>
+      <div class="cmc-r">
+        <div class="ct">
+          <span class="cf">${m.f1}</span>
+          <span style="margin-left:6px;font-size:.9rem;font-weight:600">${m.t1}</span>
+        </div>
+        <div class="${hasScore ? 'cscore' : 'cscore vs'}" style="font-size:1.3rem">
+          ${hasScore ? m.s1 + '—' + m.s2 : 'VS'}
+        </div>
+        <div class="ct r">
+          <span style="margin-right:6px;font-size:.9rem;font-weight:600">${m.t2}</span>
+          <span class="cf">${m.f2}</span>
+        </div>
+      </div>
+      ${gpsLink ? `<div class="cmc-v">${gpsLink}</div>` : ''}
+    </div>`;
+  });
+  el.innerHTML = h;
+}
+
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  STADIUMS VIEW                                         ║
+// ╚═══════════════════════════════════════════════════════╝
+function buildStadiums(){
+  const g=document.getElementById('st-g');g.innerHTML='';
+  STADIUMS.forEach(st=>{
+    const mlist=st.matches.map(id=>{
+      const m=M.find(x=>x.id===id);if(!m)return'';
+      const t1=GRP[m.g]?.t?.find(t=>t.n===m.t1)||{f:'🏳'};
+      const t2=GRP[m.g]?.t?.find(t=>t.n===m.t2)||{f:'🏳'};
+      return`<div class="st-mi">
+        <span>${t1.f} ${m.t1} vs ${m.t2} ${t2.f}</span>
+        <span style="color:var(--muted)">${fmtD(m.d)}</span>
+      </div>`;
+    }).join('');
+    const card=document.createElement('div');card.className='st-c';
+    card.innerHTML=`
+      <div class="st-img" style="background:linear-gradient(135deg,${st.color}cc,${st.color}88)">
+        <div class="st-img-emo">${st.ico}</div>
+        <div class="st-img-name">
+          ${st.name}
+          <div class="st-img-loc">${st.flag} ${st.city}, ${st.country}</div>
+        </div>
+      </div>
+      <div class="st-body">
+        <div class="st-stats">
+          <div class="st-stat">
+            <div class="st-stat-l">${T('capacity')}</div>
+            <div class="st-stat-v gold">${st.cap.toLocaleString()}</div>
+          </div>
+          <div class="st-stat">
+            <div class="st-stat-l">${T('country')}</div>
+            <div class="st-stat-v">${st.flag} ${st.country}</div>
+          </div>
+          <div class="st-stat">
+            <div class="st-stat-l">${T('city')}</div>
+            <div class="st-stat-v">${st.city.split(',')[0]}</div>
+          </div>
+          <div class="st-stat">
+            <div class="st-stat-l">${T('hosted')}</div>
+            <div class="st-stat-v gold">${st.matches.length}</div>
+          </div>
+        </div>
+        <div class="st-wx">
+          <div class="st-wx-ico">${st.wx.ico}</div>
+          <div>
+            <div class="st-wx-t">${st.wx.temp}</div>
+            <div class="st-wx-d">${T('weather')} · ${st.wx.desc}</div>
+          </div>
+        </div>
+        <div class="st-air">✈️ ${st.airport} · ${st.airdist} ${T('distance')}</div>
+        <div class="st-ms">
+          <div class="st-ms-t">${T('matches')} (${st.matches.length})</div>
+          ${mlist}
+        </div>
+      </div>`;
+    g.appendChild(card);
+  });
+}
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  ROUTING                                               ║
+// ╚═══════════════════════════════════════════════════════╝
+function rebuildView(vid){
+  if(vid==='vg')buildGroupsGrid();
+  else if(vid==='vc')buildCalendar();
+  else if(vid==='vb')buildBracket();
+  else if(vid==='vk'){buildKO();buildKOPetiteFinale();}
+  else if(vid==='vs')buildStadiums();
+  else if(vid==='vw'){buildRCal();renderLP(GKS[curGrpIdx]);}
+}
+
+function switchTab(vid){
+  const vids = ['vw','vg','vc','vb','vk','vs'];
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', vids[i] === vid);
+  });
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(vid).classList.add('active');
+  rebuildView(vid);
+}
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  UTILS                                                 ║
+// ╚═══════════════════════════════════════════════════════╝
+function fmtD(d){return new Date(d+'T12:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});}
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),2200);
+}
+
+// ╔═══════════════════════════════════════════════════════╗
+// ║  INIT                                                  ║
+// ╚═══════════════════════════════════════════════════════╝
+// ╔═══════════════════════════════════════════════════════╗
+// ║  INIT                                                  ║
+// ╚═══════════════════════════════════════════════════════╝
+window.addEventListener('DOMContentLoaded', () => {
+  buildWheel();
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    buildWheel();
+    initGlobe();
+    renderLP('A');
+
+    // Positionnement automatique sur la phase courante
+    const curPhase = getCurrentPhase();
+    rcalP = curPhase.phIdx;
+
+    // ✅ CHARGER LES KNOCKOUTS EN PREMIER
+    Promise.all([
+      fetchKOSheet('seizieme'),
+      fetchKOSheet('huitieme'),
+      fetchKOSheet('quarts'),
+      fetchKOSheet('demies'),
+      fetchKOSheet('finale')
+    ]).then(() => {
+      console.log('✅ Tous les knockouts chargés');
+      buildKO(); // Reconstruire l'arbre avec les données
+      
+      // ✅ PUIS charger les scores et afficher le calendrier
+      fetchScoresFromSheet();
+      buildRCal();
+    }).catch(err => {
+      console.error('❌ Erreur chargement knockouts:', err);
+      // Fallback : afficher l'arbre vide
+      buildKO();
+      fetchScoresFromSheet();
+      buildRCal();
+    });
+
+    // Rafraîchissement automatique toutes les 3 minutes
+    setInterval(() => {
+      fetchScoresFromSheet();
+      Promise.all([
+        fetchKOSheet('seizieme'),
+        fetchKOSheet('huitieme'),
+        fetchKOSheet('quarts'),
+        fetchKOSheet('demies'),
+        fetchKOSheet('finale')
+      ]).then(() => {
+        buildKO(); // Redessiner l'arbre avec nouvelles données
+      });
+    }, 3 * 60 * 1000);
+  }));
+});
+
+window.addEventListener('resize',()=>{
+  buildWheel();
+  if(r3){
+    const cv=document.getElementById('gcv'),sz=cv.offsetWidth;
+    if(sz>10){cv.width=sz;cv.height=sz;r3.setSize(sz,sz);}
+  }
+});
+
+</script>
+
+</div> <!-- ferme le #app si vous avez d'autres éléments après -->
+
+<!-- Footer avec liens légaux -->
+<footer style="
+  position: relative; /* Modifié de fixed pour éviter de cacher le bas de l'app */
+  text-align: center;
+  padding: 15px 12px;
+  background: rgba(6, 14, 36, 0.95);
+  color: var(--muted);
+  font-size: 0.8rem;
+  z-index: 100;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin-top: 20px;
+">
+  Independant fan website. Not affiliated with FIFA, FIFA World Cup, or tournament organizers.
+  <div class="legal-footer-links">
+    <a onclick="openLegal('privacy')">Politique de Confidentialité</a>
+    <a onclick="openLegal('terms')">Mentions Légales</a>
+  </div>
+</footer>
+
+<!-- Bandeau de Consentement Cookies -->
+<div class="cookie-banner" id="cookie-banner">
+  <div class="cookie-text">
+    <strong>Nous respectons votre vie privée</strong><br>
+    Ce site utilise des cookies (y compris Google AdSense et Google Analytics) pour personnaliser le contenu, diffuser des annonces pertinentes et analyser notre trafic. En cliquant sur "Accepter", vous consentez à cette utilisation.
+  </div>
+  <div class="cookie-buttons">
+    <button class="btn-cookie" onclick="acceptCookies(false)">Refuser</button>
+    <button class="btn-cookie accept" onclick="acceptCookies(true)">Accepter</button>
+  </div>
+</div>
+
+<!-- Modale: Politique de confidentialité -->
+<div class="mbg legal-modal" id="modal-privacy" onclick="closeLegal('privacy')">
+  <div class="legal-content" onclick="event.stopPropagation()">
+    <h2>Politique de Confidentialité</h2>
+    <p><strong>1. Collecte des données :</strong> Nous utilisons des services tiers (comme Google AdSense) qui peuvent utiliser des cookies pour diffuser des annonces en fonction de vos visites antérieures sur notre site ou d'autres sites web.</p>
+    <p><strong>2. Utilisation des cookies :</strong> L'utilisation de cookies publicitaires par Google permet à Google et à ses partenaires de diffuser des annonces ciblées. Vous pouvez désactiver la publicité personnalisée dans les paramètres de votre compte Google.</p>
+    <p><strong>3. Données locales :</strong> Ce site stocke vos préférences (langue, scores personnalisés) directement dans votre navigateur via le LocalStorage. Aucune de ces données n'est envoyée sur nos serveurs.</p>
+    <button class="btn-cookie accept" style="margin-top: 15px;" onclick="closeLegal('privacy')">Fermer</button>
+  </div>
+</div>
+
+<!-- Modale: Mentions Légales -->
+<div class="mbg legal-modal" id="modal-terms" onclick="closeLegal('terms')">
+  <div class="legal-content" onclick="event.stopPropagation()">
+    <h2>Mentions Légales</h2>
+    <p><strong>Éditeur du site :</strong> Site créé par des fans, indépendant de toute organisation officielle.</p>
+    <p><strong>Hébergement :</strong> [Nom de votre hébergeur, ex: GitHub Pages / Vercel / OVH]</p>
+    <p><strong>Propriété intellectuelle :</strong> Ce site n'est pas affilié, sponsorisé, ni approuvé par la FIFA. "FIFA", "World Cup" et tous les logos associés sont des marques déposées de la Fédération Internationale de Football Association. Les données présentées le sont à titre informatif uniquement.</p>
+    <button class="btn-cookie accept" style="margin-top: 15px;" onclick="closeLegal('terms')">Fermer</button>
+  </div>
+</div>
+
+<!-- Script de gestion des cookies et modales -->
+<script>
+  // Gestion du bandeau cookie
+  document.addEventListener("DOMContentLoaded", () => {
+    if (!localStorage.getItem("cookieConsent")) {
+      setTimeout(() => {
+        document.getElementById("cookie-banner").classList.add("show");
+      }, 1500); // Apparaît après 1.5s
+    }
+  });
+
+  function acceptCookies(accepted) {
+    localStorage.setItem("cookieConsent", accepted ? "accepted" : "refused");
+    document.getElementById("cookie-banner").classList.remove("show");
+    
+    // Si accepté, vous pourrez initialiser le script AdSense ici plus tard
+    if(accepted) {
+      console.log("Cookies acceptés - Chargement d'AdSense autorisé");
+    }
+  }
+
+  // Gestion des modales légales
+  function openLegal(id) {
+    document.getElementById('modal-' + id).classList.add('on');
+  }
+  function closeLegal(id) {
+    document.getElementById('modal-' + id).classList.remove('on');
+  }
+</script>
+
+
+</body>
+</html>
