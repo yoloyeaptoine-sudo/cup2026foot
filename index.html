@@ -435,6 +435,12 @@ nav{align-items:center;}  /* override : centrer verticalement */
   margin-bottom: 8px !important;
 }
 
+/* Heure du match en rouge (Calendrier en direct) */
+.cmc-h {
+  color: #e74c3c !important;
+  font-weight: 700;
+}
+
 /* 4. Texte "VS" ou les Scores au centre : couleurs vives et aérées */
 .cscore, .cscore.vs, .cal-sc, .cal-sc.vs {
   font-size: 1.1rem !important;
@@ -591,7 +597,6 @@ input[type="number"] {
 <nav id="nav">
   <div class="tab active" onclick="switchTab('vw')">🌐 Vue Globale</div>
   <div class="tab"        onclick="switchTab('vg')">🗂 Groupes</div>
-  <div class="tab"        onclick="switchTab('vc')">📅 Calendrier</div>
   <div class="tab"        onclick="switchTab('vb')">🏟 Phases</div>
   <div class="tab"        onclick="switchTab('vk')">🌳 Tableau</div>
   <div class="tab"        onclick="switchTab('vs')">🏟 Stades</div>
@@ -654,14 +659,6 @@ input[type="number"] {
   </div>
 </div>
 
-<!-- CALENDAR -->
-<div id="vc" class="view">
-  <div class="scr">
-    <div class="sh" style="margin-bottom:14px"><h2 id="cal-title">📅 CALENDRIER COMPLET</h2></div>
-    <div class="cp-bar" id="cp-bar"></div>
-    <div id="cal-b"></div>
-  </div>
-</div>
 
 <!-- PHASES -->
 <div id="vb" class="view">
@@ -966,6 +963,33 @@ const M=[
   {id:'L5',g:'L',d:'2026-06-27',h:'23:00',t1:'Panama',t2:'Angleterre',v:'Stadium New York New Jersey, East Rutherford'},
   {id:'L6',g:'L',d:'2026-06-27',h:'23:00',t1:'Croatie',t2:'Ghana',v:'Stadium Philadelphie, Philadelphie'},
 ];
+  
+  async function fetchGroupScoresFromSheet() {
+  const url = sheetUrl('matches_for_googlesheet');
+  const response = await fetch(url);
+  const csvText = await response.text();
+
+  const rows = csvText
+    .split('\n')
+    .map(r => r.trim())
+    .filter(r => r.length > 0);
+
+  const dataRows = rows.slice(1); // enlève l'en-tête
+
+  dataRows.forEach(row => {
+    const cols = row.split(',').map(c => c.trim());
+    const [id, date, heure, pays1, pays2, score1, score2, stade, ville, lat, lon, gps_url] = cols;
+
+    const match = M.find(m => m.id === id);
+    if (match) {
+      match.score1 = score1 !== '' ? parseInt(score1, 10) : null;
+      match.score2 = score2 !== '' ? parseInt(score2, 10) : null;
+    }
+  });
+
+  console.log('Scores injectés dans M :', M);
+}
+
 
 // ╔═══════════════════════════════════════════════════════╗
 // ║  DRAPEAUX AUTOMATIQUES PAR PAYS                        ║
@@ -1004,6 +1028,26 @@ const FLAG_MAP = {
   // Autres
   'TBD':'❓','?':'❓',
 };
+  
+  function fetchGroupScores() {
+  return fetch(sheetUrl('matches_for_googlesheet'))
+    .then(r => r.text())
+    .then(csv => {
+      const lines = csv.split('\n').slice(1); // enlève l'en-tête
+      lines.forEach(line => {
+        if (!line.trim()) return;
+        const cols = line.split(',').map(c => c.trim());
+        const [id, date, heure, pays1, pays2, score1, score2] = cols;
+
+        if (score1 !== '' && score2 !== '' && score1 !== undefined && score2 !== undefined) {
+          SC[id] = { s1: parseInt(score1, 10), s2: parseInt(score2, 10) };
+        }
+      });
+      console.log('Scores de groupes injectés dans SC :', SC);
+    })
+    .catch(err => console.warn('Erreur feuille matches_for_googlesheet:', err));
+}
+
 
 function getFlag(countryName) {
   if (!countryName) return '🏳';
@@ -1020,7 +1064,6 @@ function getFlag(countryName) {
 
 let SC={};try{SC=JSON.parse(localStorage.getItem('wc26s')||'{}');}catch(e){}
 const GKS=Object.keys(GRP);
-
 // ╔═══════════════════════════════════════════════════════╗
 // ║  GOOGLE SHEET — URLs par feuille                       ║
 // ╚═══════════════════════════════════════════════════════╝
@@ -1028,19 +1071,61 @@ const SHEET_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTIuFrdGDdTW
 
 // GIDs de chaque feuille — à remplir avec vos vrais GIDs
 const SHEET_GIDS = {
-  groupes:       '1384646921',        // Feuille "groupes"
-  seizieme:      '1101162501', // Feuille "seizieme" — remplacer par vrai GID
-  huitieme:      '275441372', // Feuille "huitieme"
-  quarts:        '1264327944', // Feuille "quarts"
-  demies:        '38819018', // Feuille "demies"
-  finale:        '2147359161', // Feuille "finale"
-  petite_finale: '989990110', // Feuille "petite_finale"
+  groupes:                 '1384646921',
+  matches_for_googlesheet: '872982250',
+  seizieme:                '1101162501',
+  huitieme:                '275441372',
+  quarts:                  '1264327944',
+  demies:                  '38819018',
+  finale:                  '2147359161',
+  petite_finale:           '989990110',
 };
+
 
 function sheetUrl(gidKey) {
   return `${SHEET_BASE}?gid=${SHEET_GIDS[gidKey]}&single=true&output=csv`;
 }
 
+  async function fetchGroupMatchesFromSheet() {
+  const url = sheetUrl('matches_for_googlesheet');
+  const response = await fetch(url);
+  const csvText = await response.text();
+
+  const rows = csvText
+    .split('\n')
+    .map(r => r.trim())
+    .filter(r => r.length > 0);
+
+  // On enlève l'en-tête
+  const dataRows = rows.slice(1);
+
+  const matches = dataRows.map(row => {
+    // Parsing CSV simple (attention aux virgules dans les champs si besoin d'un parser plus robuste)
+    const cols = row.split(',').map(c => c.trim());
+
+    const [id, date, heure, pays1, pays2, score1, score2, stade, ville, lat, lon, gps_url] = cols;
+
+    return {
+      id,
+      date,
+      heure,
+      pays1,
+      pays2,
+      score1: score1 !== '' ? parseInt(score1, 10) : null,
+      score2: score2 !== '' ? parseInt(score2, 10) : null,
+      stade,
+      ville,
+      lat: lat !== '' ? parseFloat(lat) : null,
+      lon: lon !== '' ? parseFloat(lon) : null,
+      gps_url,
+    };
+  });
+
+  return matches;
+}
+
+
+  
 // Données knockout chargées depuis le Sheet
 let KO_DATA = {
   seizieme: [],
@@ -1107,19 +1192,20 @@ function fetchKOSheet(gidKey) {
 
 // Charge les scores groupes (feuille existante)
 function fetchScoresFromSheet() {
-  fetch(sheetUrl('groupes'))
+  fetch(sheetUrl('matches_for_googlesheet'))
     .then(res => res.text())
     .then(csv => {
       const lines = csv.split('\n').slice(1);
       let updated = false;
       lines.forEach(line => {
+        if (!line.trim()) return;
         const parts = line.split(',').map(x => x.trim());
-        if (parts.length >= 3) {
-          const id = parts[0], s1 = parts[1], s2 = parts[2];
-          if (id && s1 !== '' && s2 !== '') {
-            SC[id] = { s1: parseInt(s1, 10), s2: parseInt(s2, 10) };
-            updated = true;
-          }
+        const id = parts[0];
+        const s1 = parts[5];
+        const s2 = parts[6];
+        if (id && s1 !== '' && s2 !== '' && s1 !== undefined && s2 !== undefined) {
+          SC[id] = { s1: parseInt(s1, 10), s2: parseInt(s2, 10) };
+          updated = true;
         }
       });
       if (updated) {
@@ -1130,6 +1216,7 @@ function fetchScoresFromSheet() {
     })
     .catch(err => console.error('Erreur scores groupes:', err));
 }
+
 
 // Charge TOUTES les feuilles knockout
 function fetchAllKOSheets() {
@@ -1148,7 +1235,7 @@ const PH=[{l:'Groupes'},{l:'1/16ᵉ'},{l:'1/8ᵉ'},{l:'Quarts'},{l:'Demies'},{l:
 // ║  DÉTECTION AUTOMATIQUE DE LA PHASE COURANTE            ║
 // ╚═══════════════════════════════════════════════════════╝
 const PHASE_DATES = [
-  { key: 'Finale',   label: 'Finale',  from: '2026-07-18', phIdx: 5 },
+  { key: 'finale',   label: 'Finale',  from: '2026-07-18', phIdx: 5 },
   { key: 'demies',   label: 'Demies',  from: '2026-07-14', phIdx: 4 },
   { key: 'quarts',   label: 'Quarts',  from: '2026-07-09', phIdx: 3 },
   { key: 'huitieme', label: '1/8ᵉ',   from: '2026-07-05', phIdx: 2 },
@@ -1306,21 +1393,33 @@ function centerGlobeOnStadium(lat, lon) {
   animateCamera();
 }
 
+// Retrouve le fuseau horaire d'un stade à partir de ses coordonnées
+function getTzByCoords(lat, lon) {
+  if (lat === null || lon === null || lat === undefined || lon === undefined) return null;
+  const s = STADIUMS.find(s => Math.abs(s.lat - lat) < 0.05 && Math.abs(s.lon - lon) < 0.05);
+  return s ? s.tz : null;
+}
+
 // ╔═══════════════════════════════════════════════════════╗
 // ║  CLIC SUR MATCH KNOCKOUT — avec géolocalisation        ║
 // ╚═══════════════════════════════════════════════════════╝
+// APRÈS
+// APRÈS (corrigé : utilise zoomTo, le vrai mécanisme qui marche dans "Groupes")
 function clickKOMatch(id, lat, lon) {
-  // Positionner le globe
+  const allKO = Object.values(KO_DATA).flat();
+  const m = allKO.find(x => x.id === id);
+  if (!m) return;
+
+  selMatch = m;
+
   if (lat !== null && lat !== undefined && lon !== null && lon !== undefined) {
-    centerGlobeOnStadium(lat, lon);
+    zoomTo(lat, lon, m.stade || '', m.ville || '');
+    venueTz = getTzByCoords(lat, lon); // heure locale du pays du stade
+    document.getElementById('cll-lbl').textContent = (m.ville || '').toUpperCase();
+    document.getElementById('cll-sub').textContent = (m.stade || '') + (m.ville ? ' · ' + m.ville : '');
+    document.getElementById('clk-l').classList.add('lit');
   }
-  // Marquer le match sélectionné (optionnel, pour ajouter une classe CSS)
-  document.querySelectorAll('.cmc.ko-match').forEach(el => {
-    el.classList.toggle('sel', el.getAttribute('data-mid') === id);
-  });
 }
-
-
 
 function navGrp(d){curGrpIdx=(curGrpIdx+d+GKS.length)%GKS.length;renderLP(GKS[curGrpIdx]);hlW(GKS[curGrpIdx]);}
 function clickM(id){
@@ -2011,7 +2110,7 @@ function buildRCalGroupes(body) {
            h += `<div class="cmc${sel ? ' sel' : ''}" data-mid="${m.id}" onclick="clickM('${m.id}'); centerGlobeOnStadium(${vd?.la || 'null'}, ${vd?.lo || 'null'})">
         <div class="cmc-t">
           <span style="color:${gc};font-weight:700">GRP ${m.g}</span>
-          <span>${m.h}</span>
+          <span class="cmc-h">${m.h}</span>
         </div>
         <div class="cmc-r">
           <div class="ct"><span class="cf">${f1.f}</span> <span style="margin-left:6px;font-size:.9rem">${m.t1}</span></div>
@@ -2240,103 +2339,123 @@ function buildBracket(){
 }
 
 // ╔═══════════════════════════════════════════════════════╗
-// ║  KNOCKOUT — Horizontal bracket tree                    ║
+// ║  KNOCKOUT — Horizontal bracket tree                   ║
 // ╚═══════════════════════════════════════════════════════╝
 
 function buildKO(){
   const gold='#FFD700';
-  const NW=200,NH=75,CGAP=30,RGAP=16;
+  const NW=200, NH=75, CGAP=30, RGAP=16;
   const ROUNDS=[
     {label:'GROUPES',  n:12, type:'group'},
-    {label:'1/16ᵉ',   n:12, type:'match'},
-    {label:'1/8ᵉ',   n:8,  type:'match'},
-    {label:'QUARTS',  n:4,  type:'match'},
-    {label:'DEMIES',  n:2,  type:'match'},
-    {label:'🏆 FINALE',n:1, type:'final'},
+    {label:'1/16ᵉ',    n:16, type:'match'},  // ✅ MODIFIÉ : 12 → 16
+    {label:'1/8ᵉ',     n:8,  type:'match'},
+    {label:'QUARTS',   n:4,  type:'match'},
+    {label:'DEMIES',   n:2,  type:'match'},
+    {label:'🏆 FINALE', n:1,  type:'final'},
   ];
-  const RH=NH+RGAP;
-  const MAXROWS=12;
-  const LPAD=110;
-  const CW=NW+CGAP;
-  const SVG_W=LPAD+ROUNDS.length*CW+20;
-  const SVG_H=MAXROWS*RH+60;
-  let s='';
+  
+  const RH = NH + RGAP;
+  const MAXROWS = 16;  // ✅ MODIFIÉ : 12 → 16 (pour 16 matchs 1/16e)
+  const LPAD = 110;
+  const CW = NW + CGAP;
+  const SVG_W = LPAD + ROUNDS.length * CW + 20;
+  const SVG_H = MAXROWS * RH + 60;
+  let s = '';
 
+  // ═══════════════════════════════════════════════════════
   // Column headers
-  ROUNDS.forEach((r,ci)=>{
-    const cx=LPAD+ci*CW+NW/2;
-    s+=`<rect x="${LPAD+ci*CW}" y="8" width="${NW}" height="38" rx="8"
+  // ═══════════════════════════════════════════════════════
+  ROUNDS.forEach((r, ci) => {
+    const cx = LPAD + ci * CW + NW / 2;
+    s += `<rect x="${LPAD + ci * CW}" y="8" width="${NW}" height="38" rx="8"
       fill="rgba(255,215,0,0.08)" stroke="rgba(255,215,0,0.25)" stroke-width="1"/>
     <text x="${cx}" y="27" text-anchor="middle" dominant-baseline="middle"
       font-family="Bebas Neue,sans-serif" font-size="16" letter-spacing="3" fill="${gold}">${r.label}</text>`;
   });
 
-  const TOP=36;
-  function yr(row){return TOP+row*RH;}
-  function xc(col){return LPAD+col*CW;}
+  const TOP = 36;
+  function yr(row) { return TOP + row * RH; }
+  function xc(col) { return LPAD + col * CW; }
 
-  // Row labels
-  ROUNDS.forEach((_,ci)=>{
-    const x1=LPAD+ci*CW;
-    if(ci<ROUNDS.length-1){
-      s+=`<line x1="${x1+NW}" y1="${TOP}" x2="${x1+NW}" y2="${SVG_H-10}"
+  // Row separator lines
+  ROUNDS.forEach((_, ci) => {
+    const x1 = LPAD + ci * CW;
+    if (ci < ROUNDS.length - 1) {
+      s += `<line x1="${x1 + NW}" y1="${TOP}" x2="${x1 + NW}" y2="${SVG_H - 10}"
         stroke="rgba(255,255,255,0.04)" stroke-width=".5" stroke-dasharray="3 4"/>`;
     }
   });
 
-  function mbox(cx,y,t1,t2,w){
-    w=w||NW;const c1=t1?.c||'#334',c2=t2?.c||'#334';
-    const n1=(t1?.n||'?').length>14?(t1?.n||'?').slice(0,13)+'…':(t1?.n||'?');
-    const n2=(t2?.n||'?').length>14?(t2?.n||'?').slice(0,13)+'…':(t2?.n||'?');
-    return`<rect x="${cx}" y="${y}" width="${w}" height="${NH}" rx="10"
+  // ═══════════════════════════════════════════════════════
+  // Match box renderer
+  // ═══════════════════════════════════════════════════════
+  function mbox(cx, y, t1, t2, w) {
+    w = w || NW;
+    const c1 = t1?.c || '#334';
+    const c2 = t2?.c || '#334';
+    const n1 = (t1?.n || '?').length > 14 ? (t1?.n || '?').slice(0, 13) + '…' : (t1?.n || '?');
+    const n2 = (t2?.n || '?').length > 14 ? (t2?.n || '?').slice(0, 13) + '…' : (t2?.n || '?');
+    
+    return `<rect x="${cx}" y="${y}" width="${w}" height="${NH}" rx="10"
       fill="rgba(7,17,42,0.92)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
     <rect x="${cx}" y="${y}" width="${w}" height="${NH/2}" rx="9" fill="${c1}" fill-opacity=".15"/>
-    <rect x="${cx}" y="${y+NH/2}" width="${w}" height="${NH/2}" rx="9" fill="${c2}" fill-opacity=".15"/>
-    <text x="${cx+8}" y="${y+NH/4}" dominant-baseline="middle"
-      font-family="Barlow Condensed,sans-serif" font-size="16" font-weight="700" fill="#dde6f0">${t1?.f||'❓'} ${n1}</text>
-    <text x="${cx+8}" y="${y+NH*3/4}" dominant-baseline="middle"
-      font-family="Barlow Condensed,sans-serif" font-size="16" font-weight="700" fill="#dde6f0">${t2?.f||'❓'} ${n2}</text>`;
-  }
-  
-  function conn(x1,y1,x2,y2,c){
-    c=c||'rgba(255,255,255,0.1)';
-    const mx=(x1+x2)/2;
-    return`<path d="M${x1} ${y1}C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" fill="none" stroke="${c}" stroke-width=".8" opacity=".6"/>`;
+    <rect x="${cx}" y="${y + NH/2}" width="${w}" height="${NH/2}" rx="9" fill="${c2}" fill-opacity=".15"/>
+    <text x="${cx + 8}" y="${y + NH/4}" dominant-baseline="middle"
+      font-family="Barlow Condensed,sans-serif" font-size="16" font-weight="700" fill="#dde6f0">${t1?.f || '🏳'} ${n1}</text>
+    <text x="${cx + 8}" y="${y + NH * 3/4}" dominant-baseline="middle"
+      font-family="Barlow Condensed,sans-serif" font-size="16" font-weight="700" fill="#dde6f0">${t2?.f || '🏳'} ${n2}</text>`;
   }
 
-  // ═══════════════════════════════════════════
-  // Col 0: Groups
-  // ═══════════════════════════════════════════
-  const c0x=xc(0);
-  const c0ys=GKS.map((_,i)=>yr(i));
-  GKS.forEach((gk,i)=>{
-    const gd=GRP[gk],st2=standings(gk),y=c0ys[i];
-    s+=`<rect x="${c0x}" y="${y}" width="${NW}" height="${NH}" rx="7"
+  // ═══════════════════════════════════════════════════════
+  // Connection curves (bezier)
+  // ═══════════════════════════════════════════════════════
+  function conn(x1, y1, x2, y2, c) {
+    c = c || 'rgba(255,255,255,0.1)';
+    const mx = (x1 + x2) / 2;
+    return `<path d="M${x1} ${y1}C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" fill="none" stroke="${c}" stroke-width=".8" opacity=".6"/>`;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // Col 0: Groups (12)
+  // ═══════════════════════════════════════════════════════
+  const c0x = xc(0);
+  const c0ys = GKS.map((_, i) => yr(i));
+  
+  GKS.forEach((gk, i) => {
+    const gd = GRP[gk];
+    const st2 = standings(gk);
+    const y = c0ys[i];
+    
+    s += `<rect x="${c0x}" y="${y}" width="${NW}" height="${NH}" rx="7"
       fill="${gd.c}" fill-opacity=".11" stroke="${gd.c}" stroke-opacity=".3" stroke-width=".8"
       style="cursor:pointer" onclick="clickGrp('${gk}');switchTab('vw')"/>
-    <text x="${c0x+8}" y="${y+NH/2-12}" dominant-baseline="middle"
+    <text x="${c0x + 8}" y="${y + NH/2 - 12}" dominant-baseline="middle"
       font-family="Bebas Neue,sans-serif" font-size="18" letter-spacing="2" fill="${gd.c}">GRP ${gk}</text>
-    <text x="${c0x+8}" y="${y+NH/2+14}" dominant-baseline="middle"
+    <text x="${c0x + 8}" y="${y + NH/2 + 14}" dominant-baseline="middle"
       font-family="Barlow Condensed,sans-serif" font-size="16" fill="#dde6f0" opacity=".75">
-      ${st2.slice(0,3).map(t=>t.f).join(' ')}</text>`;
+      ${st2.slice(0, 3).map(t => t.f).join(' ')}</text>`;
   });
 
-  // ═══════════════════════════════════════════
-  // Col 1: 1/16ᵉ (12 matchups) — Depuis KO_DATA
-  // ═══════════════════════════════════════════
-  const ko16=KO_DATA['seizieme'] || [];
-  const c1x=xc(1);
-  const c1ys=Array.from({length:12},(_,i)=>yr(i));
+  // ═══════════════════════════════════════════════════════
+  // Col 1: 1/16ᵉ (16 matchups) — ✅ AVEC LES 2 MATCHS MANQUANTS
+  // ═══════════════════════════════════════════════════════
+  const ko16 = KO_DATA['seizieme'] || [];
+  const c1x = xc(1);
+  const c1ys = Array.from({ length: 16 }, (_, i) => yr(i));  // ✅ MODIFIÉ : 12 → 16
   
-  // Matchups par défaut (groupes)
-  const r32P=[['A',0,'B',1],['C',0,'D',1],['E',0,'F',1],['G',0,'H',1],['I',0,'J',1],['K',0,'L',1],
-              ['B',0,'A',1],['D',0,'C',1],['F',0,'E',1],['H',0,'G',1],['J',0,'I',1],['L',0,'K',1]];
+  // ANCIEN mapping (groupes) — maintenant inutile car on utilise KO_DATA
+  const r32P = [
+    ['A', 0, 'B', 1], ['C', 0, 'D', 1], ['E', 0, 'F', 1], ['G', 0, 'H', 1],
+    ['I', 0, 'J', 1], ['K', 0, 'L', 1],
+    ['B', 0, 'A', 1], ['D', 0, 'C', 1], ['F', 0, 'E', 1], ['H', 0, 'G', 1],
+    ['J', 0, 'I', 1], ['L', 0, 'K', 1]
+  ];
   
-  c1ys.forEach((y,i)=>{
+  c1ys.forEach((y, i) => {
     let t1, t2;
     
-    if(ko16[i]){
-      // ✅ Données depuis Google Sheet
+    if (ko16[i]) {
+      // ✅ Données depuis KO_DATA (PRIORITAIRE)
       t1 = {
         n: ko16[i].t1,
         f: getFlag(ko16[i].t1),
@@ -2347,36 +2466,42 @@ function buildKO(){
         f: getFlag(ko16[i].t2),
         c: '#FFD700'
       };
-    } else {
-      // ⚠️ Fallback : calcul depuis les groupes
-      const [g1,p1,g2,p2] = r32P[i];
+    } else if (i < r32P.length) {
+      // ⚠️  Fallback : calcul depuis les groupes (groupes seulement)
+      const [g1, p1, g2, p2] = r32P[i];
       const st1 = standings(g1);
       const st2_alt = standings(g2);
-      t1 = {...st1[p1], c: GRP[g1].c};
-      t2 = {...st2_alt[p2], c: GRP[g2].c};
+      t1 = { ...st1[p1], c: GRP[g1].c };
+      t2 = { ...st2_alt[p2], c: GRP[g2].c };
+    } else {
+      // Pas de données
+      t1 = { n: '?', f: '🏳', c: '#666' };
+      t2 = { n: '?', f: '🏳', c: '#666' };
     }
     
-    s+=mbox(c1x,y,t1,t2);
+    s += mbox(c1x, y, t1, t2);
     
-    // Connexions depuis les groupes
-    const [g1,p1,g2,p2] = r32P[i];
-    if(c0ys[GKS.indexOf(g1)]!==undefined){
-      s+=conn(c0x+NW,c0ys[GKS.indexOf(g1)]+NH/2,c1x,y+NH/2,GRP[g1].c+'44');
+    // Connexions visuelles depuis groupes (ANCIEN CODE - optionnel)
+    if (i < r32P.length) {
+      const [g1, p1, g2, p2] = r32P[i];
+      const gIdx = GKS.indexOf(g1);
+      if (c0ys[gIdx] !== undefined) {
+        s += conn(c0x + NW, c0ys[gIdx] + NH/2, c1x, y + NH/2, GRP[g1].c + '44');
+      }
     }
   });
 
-  // ═══════════════════════════════════════════
-  // Col 2: 1/8ᵉ (8) — Depuis KO_DATA
-  // ═══════════════════════════════════════════
-  const ko8=KO_DATA['huitieme'] || [];
-  const c2x=xc(2);
-  const c2ys=Array.from({length:8},(_,i)=>yr(i*1.5));
+  // ═══════════════════════════════════════════════════════
+  // Col 2: 1/8ᵉ (8 matchups)
+  // ═══════════════════════════════════════════════════════
+  const ko8 = KO_DATA['huitieme'] || [];
+  const c2x = xc(2);
+  const c2ys = Array.from({ length: 8 }, (_, i) => yr(i * 2));  // ✅ MODIFIÉ : espacement ajusté
   
-  c2ys.forEach((y,i)=>{
+  c2ys.forEach((y, i) => {
     let t1, t2;
     
-    if(ko8[i]){
-      // ✅ Données depuis Google Sheet
+    if (ko8[i]) {
       t1 = {
         n: ko8[i].t1,
         f: getFlag(ko8[i].t1),
@@ -2388,30 +2513,28 @@ function buildKO(){
         c: '#FFD700'
       };
     } else {
-      // ⚠️ Fallback : depuis 1/16ᵉ
-      t1 = {n: '?', f: '❓', c: '#666'};
-      t2 = {n: '?', f: '❓', c: '#666'};
+      t1 = { n: '?', f: '🏳', c: '#666' };
+      t2 = { n: '?', f: '🏳', c: '#666' };
     }
     
-    s+=mbox(c2x,y,t1,t2);
+    s += mbox(c2x, y, t1, t2);
     
     // Connexions depuis 1/16ᵉ
-    if(c1ys[i*2]!==undefined) s+=conn(c1x+NW,c1ys[i*2]+NH/2,c2x,y+NH/2);
-    if(c1ys[i*2+1]!==undefined) s+=conn(c1x+NW,c1ys[i*2+1]+NH/2,c2x,y+NH/2);
+    if (c1ys[i * 2] !== undefined) s += conn(c1x + NW, c1ys[i * 2] + NH/2, c2x, y + NH/2);
+    if (c1ys[i * 2 + 1] !== undefined) s += conn(c1x + NW, c1ys[i * 2 + 1] + NH/2, c2x, y + NH/2);
   });
 
-  // ═══════════════════════════════════════════
-  // Col 3: Quarts (4) — Depuis KO_DATA
-  // ═══════════════════════════════════════════
-  const ko4=KO_DATA['quarts'] || [];
-  const c3x=xc(3);
-  const c3ys=Array.from({length:4},(_,i)=>yr(i*3));
+  // ═══════════════════════════════════════════════════════
+  // Col 3: Quarts (4 matchups)
+  // ═══════════════════════════════════════════════════════
+  const ko4 = KO_DATA['quarts'] || [];
+  const c3x = xc(3);
+  const c3ys = Array.from({ length: 4 }, (_, i) => yr(i * 4));  // ✅ MODIFIÉ : espacement ajusté
   
-  c3ys.forEach((y,i)=>{
+  c3ys.forEach((y, i) => {
     let t1, t2;
     
-    if(ko4[i]){
-      // ✅ Données depuis Google Sheet
+    if (ko4[i]) {
       t1 = {
         n: ko4[i].t1,
         f: getFlag(ko4[i].t1),
@@ -2423,30 +2546,28 @@ function buildKO(){
         c: '#FFD700'
       };
     } else {
-      // ⚠️ Fallback
-      t1 = {n: '?', f: '❓', c: '#666'};
-      t2 = {n: '?', f: '❓', c: '#666'};
+      t1 = { n: '?', f: '🏳', c: '#666' };
+      t2 = { n: '?', f: '🏳', c: '#666' };
     }
     
-    s+=mbox(c3x,y,t1,t2,NW+4);
+    s += mbox(c3x, y, t1, t2, NW + 4);
     
     // Connexions depuis 1/8ᵉ
-    if(c2ys[i*2]!==undefined) s+=conn(c2x+NW,c2ys[i*2]+NH/2,c3x,y+NH/2,gold+'44');
-    if(c2ys[i*2+1]!==undefined) s+=conn(c2x+NW,c2ys[i*2+1]+NH/2,c3x,y+NH/2,gold+'44');
+    if (c2ys[i * 2] !== undefined) s += conn(c2x + NW, c2ys[i * 2] + NH/2, c3x, y + NH/2, gold + '44');
+    if (c2ys[i * 2 + 1] !== undefined) s += conn(c2x + NW, c2ys[i * 2 + 1] + NH/2, c3x, y + NH/2, gold + '44');
   });
 
-  // ═══════════════════════════════════════════
-  // Col 4: Demi-finales (2) — Depuis KO_DATA
-  // ═══════════════════════════════════════════
-  const ko2=KO_DATA['demies'] || [];
-  const c4x=xc(4);
-  const c4ys=Array.from({length:2},(_,i)=>yr(i*5));
+  // ═══════════════════════════════════════════════════════
+  // Col 4: Demi-finales (2 matchups)
+  // ═══════════════════════════════════════════════════════
+  const ko2 = KO_DATA['demies'] || [];
+  const c4x = xc(4);
+  const c4ys = Array.from({ length: 2 }, (_, i) => yr(i * 8));  // ✅ MODIFIÉ : espacement ajusté
   
-  c4ys.forEach((y,i)=>{
+  c4ys.forEach((y, i) => {
     let t1, t2;
     
-    if(ko2[i]){
-      // ✅ Données depuis Google Sheet
+    if (ko2[i]) {
       t1 = {
         n: ko2[i].t1,
         f: getFlag(ko2[i].t1),
@@ -2458,28 +2579,27 @@ function buildKO(){
         c: '#FFD700'
       };
     } else {
-      // ⚠️ Fallback
-      t1 = {n: '?', f: '❓', c: '#666'};
-      t2 = {n: '?', f: '❓', c: '#666'};
+      t1 = { n: '?', f: '🏳', c: '#666' };
+      t2 = { n: '?', f: '🏳', c: '#666' };
     }
     
-    s+=mbox(c4x,y,t1,t2,NW+6);
+    s += mbox(c4x, y, t1, t2, NW + 6);
     
     // Connexions depuis quarts
-    s+=conn(c3x+NW+4,c3ys[i*2]||c3ys[0],c4x,y+NH/2,gold+'50');
-    if(c3ys[i*2+1]!==undefined) s+=conn(c3x+NW+4,c3ys[i*2+1],c4x,y+NH/2,gold+'50');
+    s += conn(c3x + NW + 4, c3ys[i * 2] || c3ys[0], c4x, y + NH/2, gold + '50');
+    if (c3ys[i * 2 + 1] !== undefined) s += conn(c3x + NW + 4, c3ys[i * 2 + 1], c4x, y + NH/2, gold + '50');
   });
 
-  // ═══════════════════════════════════════════
-  // Col 5: Finale — Depuis KO_DATA
-  // ═══════════════════════════════════════════
-  const koFinal=KO_DATA['finale'] || [];
-  const c5x=xc(5);
-  const fY=yr(4)+RH/2;
+  // ═══════════════════════════════════════════════════════
+  // Col 5: Finale (1 matchup)
+  // ═══════════════════════════════════════════════════════
+  const koFinal = KO_DATA['finale'] || [];
+  const c5x = xc(5);
+  const fY = yr(4);  // ✅ MODIFIÉ : centré verticalement
   
   let t1Final, t2Final;
-  if(koFinal[0]){
-    // ✅ Données depuis Google Sheet
+  
+  if (koFinal[0]) {
     t1Final = {
       n: koFinal[0].t1,
       f: getFlag(koFinal[0].t1),
@@ -2491,64 +2611,43 @@ function buildKO(){
       c: '#FFD700'
     };
   } else {
-    // ⚠️ Fallback
-    t1Final = {n: '?', f: '❓', c: '#666'};
-    t2Final = {n: '?', f: '❓', c: '#666'};
+    t1Final = { n: '?', f: '🏳', c: '#666' };
+    t2Final = { n: '?', f: '🏳', c: '#666' };
   }
   
-  s+=mbox(c5x,fY,t1Final,t2Final,NW+10);
+  s += mbox(c5x, fY, t1Final, t2Final, NW + 10);
   
   // Connexions depuis demies
-  c4ys.forEach(y=>s+=conn(c4x+NW+6,y+NH/2,c5x,fY+NH/2,gold+'58'));
+  c4ys.forEach(y => s += conn(c4x + NW + 6, y + NH/2, c5x, fY + NH/2, gold + '58'));
   
-  s+=`<text x="${c5x+NW/2+5}" y="${fY+NH+28}" text-anchor="middle" font-size="40">🏆</text>
-    <text x="${c5x+NW/2+5}" y="${fY+NH+62}" text-anchor="middle"
-      font-family="Bebas Neue,sans-serif" font-size="16" letter-spacing="3" fill="${gold}">19 JUILLET 2026</text>`;
+  s += `<text x="${c5x + NW/2 + 5}" y="${fY + NH + 28}" text-anchor="middle" font-size="40">🏆</text>
+    <text x="${c5x + NW/2 + 5}" y="${fY + NH + 62}" text-anchor="middle"
+      font-family="Bebas Neue,sans-serif" font-size="16" letter-spacing="3" fill="${gold}">18 JUILLET 2026</text>`;
 
-  document.getElementById('ko-w').innerHTML=
-    `<svg viewBox="0 0 ${SVG_W} ${SVG_H}" width="${SVG_W}" style="min-width:1400px;display:block;transform-origin:top left;">${s}</svg>`;
+  // ═══════════════════════════════════════════════════════
+  // Render SVG
+  // ═══════════════════════════════════════════════════════
+  document.getElementById('ko-w').innerHTML =
+    `<svg viewBox="0 0 ${SVG_W} ${SVG_H}" width="${SVG_W}" style="min-width:1600px;display:block;transform-origin:top left;">
+      ${s}
+    </svg>`;
 }
 
-
-// ╔═══════════════════════════════════════════════════════╗
-// ║  PETITE FINALE dans TABLEAU                            ║
-// ╚═══════════════════════════════════════════════════════╝
-function buildKOPetiteFinale() {
-  const el = document.getElementById('ko-petite-body');
-  if (!el) return;
-  const matches = KO_DATA['petite_finale'] || [];
-  if (!matches.length) {
-    el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:10px;font-size:.85rem">Disponible après les demi-finales</div>';
-    return;
-  }
-  let h = '';
-  matches.forEach(m => {
-    const hasScore = m.s1 !== null && m.s2 !== null;
-    const gpsLink = m.gps
-      ? `<a href="${m.gps}" target="_blank" style="color:var(--gold);text-decoration:none">📍 ${m.stade}${m.ville ? ', ' + m.ville : ''}</a>`
-      : (m.stade ? `📍 ${m.stade}${m.ville ? ', ' + m.ville : ''}` : '');
-        h += `<div class="cmc ko-match" style="margin-bottom:0" onclick="clickKOMatch('${m.id}', ${m.lat}, ${m.lon})">
-      <div class="cmc-t">
-        <span style="color:#c0392b;font-weight:700">3ᵉ PLACE</span>
-        <span>${fmtD(m.d)} · ${m.h || ''}</span>
-      </div>
-      <div class="cmc-r">
-        <div class="ct">
-          <span class="cf">${m.f1}</span>
-          <span style="margin-left:6px;font-size:.9rem;font-weight:600">${m.t1}</span>
-        </div>
-        <div class="${hasScore ? 'cscore' : 'cscore vs'}" style="font-size:1.3rem">
-          ${hasScore ? m.s1 + '—' + m.s2 : 'VS'}
-        </div>
-        <div class="ct r">
-          <span style="margin-right:6px;font-size:.9rem;font-weight:600">${m.t2}</span>
-          <span class="cf">${m.f2}</span>
-        </div>
-      </div>
-      ${gpsLink ? `<div class="cmc-v">${gpsLink}</div>` : ''}
-    </div>`;
-  });
-  el.innerHTML = h;
+// ═══════════════════════════════════════════════════════════════════════════════
+// Helper function : get flag emoji from country name
+// ═══════════════════════════════════════════════════════════════════════════════
+function getFlag(countryName) {
+  const flagMap = {
+    'Allemagne': '🇩🇪', 'Paraguay': '🇵🇾', 'France': '🇫🇷', 'Suède': '🇸🇪',
+    'Afrique du Sud': '🇿🇦', 'Canada': '🇨🇦', 'Maroc': '🇲🇦', 'Autriche': '🇦🇹',
+    'Portugal': '🇵🇹', 'Croatie': '🇭🇷', 'Espagne': '🇪🇸', 'Bosnie-Herzégovine': '🇧🇦',
+    'États-Unis': '🇺🇸', 'Belgique': '🇧🇪', 'Sénégal': '🇸🇳', 'Brésil': '🇧🇷',
+    'Japon': '🇯🇵', 'Côte d\'Ivoire': '🇨🇮', 'Norvège': '🇳🇴', 'Mexique': '🇲🇽',
+    'Équateur': '🇪🇨', 'Angleterre': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'RD Congo': '🇨🇩', 'Argentine': '🇦🇷',
+    'Cap-Vert': '🇨🇻', 'Australie': '🇦🇺', 'Égypte': '🇪🇬', 'Suisse': '🇨🇭',
+    'Algérie': '🇩🇿', 'Colombie': '🇨🇴', 'Ghana': '🇬🇭'
+  };
+  return flagMap[countryName] || '🏳';
 }
 
 
