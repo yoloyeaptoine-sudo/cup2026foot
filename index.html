@@ -2156,9 +2156,9 @@ function buildRCalKO(body, sheetKey, phaseLabel) {
         ? `<a href="${m.gps}" target="_blank" style="color:var(--gold);text-decoration:none">📍 ${m.stade}${m.ville ? ', ' + m.ville : ''}</a>`
         : (m.stade ? `📍 ${m.stade}${m.ville ? ', ' + m.ville : ''}` : '');
       h += `<div class="cmc ko-match" data-mid="${m.id}" onclick="clickKOMatch('${m.id}', ${m.lat}, ${m.lon})">
-        <div class="cmc-t">
+                <div class="cmc-t">
           <span style="color:var(--gold);font-weight:700">${phaseLabel}</span>
-          <span>${m.h || ''}</span>
+          <span class="cmc-h">${m.h || ''}</span>
         </div>
         <div class="cmc-r">
           <div class="ct">
