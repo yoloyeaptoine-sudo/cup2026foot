@@ -731,30 +731,46 @@ let LANG='fr';
 const LF={fr:{f:'🇫🇷',l:'FR'},en:{f:'🇬🇧',l:'EN'},es:{f:'🇪🇸',l:'ES'},de:{f:'🇩🇪',l:'DE'},pt:{f:'🇵🇹',l:'PT'},ar:{f:'🇸🇦',l:'AR'},zh:{f:'🇨🇳',l:'ZH'},ja:{f:'🇯🇵',l:'JA'},ru:{f:'🇷🇺',l:'RU'}};
 function T(k){return(I18N[LANG]||I18N.fr)[k]||k;}
 function applyLang(){
-  document.getElementById('htmlroot').setAttribute('dir',LANG==='ar'?'rtl':'ltr');
-  document.getElementById('hdate').textContent=T('hdate');
-  document.getElementById('cll-lbl').textContent=T('clk_m');
-  document.getElementById('cll-sub').textContent=selMatch?'':T('clk_sel');
-  document.getElementById('clr-lbl').textContent=T('clk_l');
-  document.getElementById('ghint').textContent=T('ghint');
-  document.getElementById('cal-live-t').textContent=T('cal_live');
-  document.getElementById('grp-title').textContent=T('grp_title');
-  document.getElementById('grp-sub').textContent=T('grp_sub');
-  document.getElementById('cal-title').textContent=T('cal_title');
-  document.getElementById('ph-title').textContent=T('ph_title');
-  document.getElementById('ko-title').textContent=T('ko_title');
-  document.getElementById('ko-sub').textContent=T('ko_sub');
-  document.getElementById('st-title').textContent=T('st_title');
-  document.getElementById('st-sub').textContent=T('st_sub');
+  // 1. Gérer le sens de lecture (RTL/LTR)
+  const root = document.getElementById('htmlroot');
+  if (root) root.setAttribute('dir', LANG === 'ar' ? 'rtl' : 'ltr');
+
+  // 2. Fonction sécurisée pour changer le texte
+  const setText = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  };
+
+  // 3. Appliquer les textes seulement si les éléments existent
+  setText('hdate', T('hdate'));
+  setText('cll-lbl', T('clk_m'));
+  setText('cll-sub', typeof selMatch !== 'undefined' && selMatch ? '' : T('clk_sel'));
+  setText('clr-lbl', T('clk_l'));
+  setText('ghint', T('ghint'));
+  setText('cal-live-t', T('cal_live'));
+  setText('grp-title', T('grp_title'));
+  setText('grp-sub', T('grp_sub'));
+  setText('cal-title', T('cal_title'));
+  setText('ph-title', T('ph_title'));
+  setText('ko-title', T('ko_title'));
+  setText('ko-sub', T('ko_sub'));
+  setText('st-title', T('st_title'));
+  setText('st-sub', T('st_sub'));
+
   // Nav tabs
   const tabs = document.querySelectorAll('.tab');
-T('nav').forEach((l, i) => {
-  if (tabs[i]) tabs[i].textContent = l;
-});
+  const navTexts = T('nav');
+  if (Array.isArray(navTexts)) {
+    navTexts.forEach((l, i) => {
+      if (tabs[i]) tabs[i].textContent = l;
+    });
+  }
+
   // Rebuild open views
-  const av=document.querySelector('.view.active');
-  if(av)rebuildView(av.id);
+  const av = document.querySelector('.view.active');
+  if (av && typeof rebuildView === 'function') rebuildView(av.id);
 }
+
 function setLang(l){
   LANG=l;
   // Mettre à jour le bouton nav
@@ -772,6 +788,10 @@ function setLang(l){
   if(om)om.classList.remove('open');
   applyLang();
 }
+
+
+window.setLang = setLang;
+
 // Fermer le dropdown lang si clic à l'extérieur
 document.addEventListener('click',e=>{
   if(!e.target.closest('#lang-nav-wrap')&&!e.target.closest('#lang-btn')&&!e.target.closest('#lang-menu')){
