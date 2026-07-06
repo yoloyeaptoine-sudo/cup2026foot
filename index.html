@@ -2860,6 +2860,7 @@ window.addEventListener('resize',()=>{
   </div>
 </div>
 
+
 <!-- Modale: Politique de confidentialité -->
 <div class="mbg legal-modal" id="modal-privacy" onclick="closeLegal('privacy')">
   <div class="legal-content" onclick="event.stopPropagation()">
@@ -2871,47 +2872,50 @@ window.addEventListener('resize',()=>{
   </div>
 </div>
 
-<!-- Modale: Mentions Légales -->
-<div class="mbg legal-modal" id="modal-terms" onclick="closeLegal('terms')">
-  <div class="legal-content" onclick="event.stopPropagation()">
-    <h2>Mentions Légales</h2>
-    <p><strong>Éditeur du site :</strong> Site créé par des fans, indépendant de toute organisation officielle.</p>
-    <p><strong>Hébergement :</strong> [Nom de votre hébergeur, ex: GitHub Pages / Vercel / OVH]</p>
-    <p><strong>Propriété intellectuelle :</strong> Ce site n'est pas affilié, sponsorisé, ni approuvé par la FIFA. "FIFA", "World Cup" et tous les logos associés sont des marques déposées de la Fédération Internationale de Football Association. Les données présentées le sont à titre informatif uniquement.</p>
-    <button class="btn-cookie accept" style="margin-top: 15px;" onclick="closeLegal('terms')">Fermer</button>
-  </div>
-</div>
-
-<!-- Script de gestion des cookies et modales -->
 <script>
-  // Gestion du bandeau cookie
-  document.addEventListener("DOMContentLoaded", () => {
-    if (!localStorage.getItem("cookieConsent")) {
-      setTimeout(() => {
-        document.getElementById("cookie-banner").classList.add("show");
-      }, 1500); // Apparaît après 1.5s
-    }
-  });
 
-  function acceptCookies(accepted) {
-    localStorage.setItem("cookieConsent", accepted ? "accepted" : "refused");
-    document.getElementById("cookie-banner").classList.remove("show");
-    
-    // Si accepté, vous pourrez initialiser le script AdSense ici plus tard
-    if(accepted) {
-      console.log("Cookies acceptés - Chargement d'AdSense autorisé");
-    }
-  }
-
-  // Gestion des modales légales
+// Gestion des modales légales
   function openLegal(id) {
     document.getElementById('modal-' + id).classList.add('on');
   }
   function closeLegal(id) {
     document.getElementById('modal-' + id).classList.remove('on');
   }
-</script>
 
+  // 1. Fonction appelée quand on clique sur Accepter ou Refuser (La bonne version)
+  function acceptCookies(accepted) {
+    document.getElementById('cookie-banner').classList.remove('show');
+    localStorage.setItem('wc26_cookies', accepted ? 'yes' : 'no');
+    
+    // Si l'utilisateur a cliqué sur "Accepter", on charge la pub
+    if (accepted) {
+      loadAdSense();
+    }
+  }
+
+  // 2. La fonction qui charge Google AdSense avec votre ID
+  function loadAdSense() {
+    const script = document.createElement('script');
+    script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2376200269640809";
+    script.crossOrigin = "anonymous";
+    script.async = true;
+    document.head.appendChild(script);
+    console.log("✅ Pub Google chargée après acceptation");
+  }
+
+  // 3. Vérifier au chargement de la page si l'utilisateur avait déjà accepté avant
+  window.addEventListener('DOMContentLoaded', () => {
+    const cookieChoice = localStorage.getItem('wc26_cookies');
+    if (!cookieChoice) {
+      // S'il n'a jamais choisi, on affiche le bandeau
+      setTimeout(() => document.getElementById('cookie-banner').classList.add('show'), 1000);
+    } else if (cookieChoice === 'yes') {
+      // S'il avait déjà dit "oui" lors d'une précédente visite, on charge la pub direct
+      loadAdSense();
+    }
+  });
+
+</script>
 
 </body>
 </html>
